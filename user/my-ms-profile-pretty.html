@@ -5,427 +5,423 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>My Microsoft 365 Profile</title>
   <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --primary: #667eea;
-      --accent: #764ba2;
-      --neutral-bg: #f8fafd;
-      --card-bg: rgba(255,255,255,0.85);
-      --card-blur: blur(14px);
-      --shadow1: 0 2px 24px rgba(102,126,234,0.18);
-      --shadow2: 0 4px 8px rgba(76,81,255,0.07);
-      --radius: 2rem;
-      --pill-radius: 50px;
-      --icon-size: 1.1rem;
-      --transition: all 0.3s cubic-bezier(.39,.58,.57,1);
-      --error: #e55353;
-      --success: #23c686;
-      --info: #0078d4;
-      --field-space: 16px;
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --card-bg: rgba(255,255,255,0.72);
+      --shadow-lg: 0 6px 32px rgba(52,64,90,0.13), 0 1.5px 8px rgba(52,64,90,0.06);
+      --radius-lg: 24px;
+      --radius-pill: 999px;
+      --font-main: 'Inter', system-ui, Arial, sans-serif;
+      --accent: #667eea;
+      --transition: 0.25s cubic-bezier(.46,.03,.52,.96);
+      --field-label: #52586b;
+      --field-value: #27304b;
+      --muted: #9ca3af;
+      --error-bg: rgba(255,80,95,0.08);
+      --error-border: #ff5060;
+      --status-bg: #f4f6fb;
+      --status-fg: #4b5563;
       --avatar-size: 64px;
-      --font-label: 0.85rem;
-      --font-value: 1.07rem;
-      --font-headline: 2.5rem;
+      --gap: 20px;
+      --base-pad: 24px;
     }
 
     html, body {
       height: 100%;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-      background: var(--neutral-bg);
-      font-family: 'Inter', system-ui, sans-serif;
-    }
-
-    body {
+      background: linear-gradient(120deg, #ece9f7 0%, #d9e7ff 100%);
       min-height: 100vh;
+      font-family: var(--font-main);
+      color: var(--field-value);
+    }
+    body {
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
-      padding: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    h1 {
-      font-size: var(--font-headline);
-      color: #fff;
-      text-shadow: 0 2px 12px rgba(118,75,162,0.18);
-      margin-bottom: 32px;
-      letter-spacing: -1px;
-      font-weight: 800;
-      text-align: center;
-      line-height: 1.1;
-      user-select: none;
-    }
-
-    .center-container {
-      display: flex;
-      flex-direction: column;
       align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
       width: 100%;
-      min-height: 440px;
-      justify-content: center;
-    }
-
-    .btn {
-      padding: 12px 32px;
-      border: none;
-      outline: none;
-      border-radius: var(--pill-radius);
-      font-size: 1.07rem;
-      font-weight: 600;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      color: #fff;
-      box-shadow: var(--shadow2);
-      cursor: pointer;
-      transition: var(--transition);
-      margin: 0 6px 22px 6px;
-      position: relative;
-      overflow: hidden;
-      letter-spacing: 0.02em;
-      min-width: 110px;
-      z-index: 0;
-    }
-    .btn:focus-visible {
-      outline: 2px solid #fff;
-      outline-offset: 2px;
-    }
-    .btn:hover, .btn:active {
-      transform: translateY(-2px) scale(1.03);
-      box-shadow: var(--shadow1);
-      filter: brightness(1.05);
-    }
-    /* Ripple effect */
-    .btn .ripple {
-      position: absolute;
-      border-radius: 50%;
-      transform: scale(0);
-      animation: ripple 0.45s linear;
-      background: rgba(255,255,255,0.32);
-      pointer-events: none;
-    }
-    @keyframes ripple {
-      to {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-
-    #profile {
-      display: none;
+      max-width: 420px;
+      padding: var(--base-pad);
+      border-radius: var(--radius-lg);
       background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow1), var(--shadow2);
-      padding: 40px 30px 32px;
-      max-width: 400px;
-      width: 100%;
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(10px);
       margin: 0 auto;
-      backdrop-filter: var(--card-blur);
-      -webkit-backdrop-filter: var(--card-blur);
-      transition: var(--transition), opacity 0.7s;
-      opacity: 0;
-      transform: translateY(30px);
-      pointer-events: auto;
-      position: relative;
-      z-index: 1;
-      border: 1px solid rgba(180,180,255,0.09);
-      animation: cardIn 0.7s cubic-bezier(.27,.77,.43,1.11) forwards;
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap);
+      animation: fadeInSlideUp 0.6s cubic-bezier(.46,.03,.52,.96);
     }
-    @keyframes cardIn {
-      0% { opacity: 0; transform: translateY(30px);}
-      100% { opacity: 1; transform: translateY(0);}
-    }
-    #profile.show {
-      display: block;
-      opacity: 1;
-      transform: translateY(0);
-    }
-    #profile:hover {
-      box-shadow: 0 4px 32px rgba(102,126,234,0.20), 0 4px 16px rgba(76,81,255,0.10);
-      transform: translateY(-2px) scale(1.01);
+    @keyframes fadeInSlideUp {
+      from { opacity: 0; transform: translateY(24px);}
+      to { opacity: 1; transform: translateY(0);}
     }
 
-    .avatar {
+    .profile-avatar {
       width: var(--avatar-size);
       height: var(--avatar-size);
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
+      background: var(--primary-gradient);
       color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 2.2rem;
       font-weight: 700;
-      font-size: 2rem;
-      letter-spacing: 1px;
-      margin: 0 auto 24px auto;
-      box-shadow: 0 2px 12px rgba(102,126,234,0.17);
+      box-shadow: 0 3px 12px rgba(102,126,234,0.18);
+      margin: 0 auto var(--gap) auto;
+      letter-spacing: 2px;
       user-select: none;
-      text-transform: uppercase;
-      border: 4px solid #fff;
+      position: relative;
+    }
+    .profile-headline {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 2px;
+      line-height: 1.2;
+      color: var(--field-value);
+      text-shadow: 0 1px 3px rgba(118,75,162,0.07);
+    }
+    .profile-title {
+      text-align: center;
+      font-size: 1rem;
+      color: var(--muted);
+      font-weight: 500;
+      margin-bottom: 8px;
     }
 
     .fields {
       display: flex;
       flex-direction: column;
-      gap: var(--field-space);
-      margin-top: 8px;
-      margin-bottom: 2px;
+      gap: 10px;
     }
-    .field {
+    .field-row {
       display: flex;
       align-items: center;
-      gap: 12px;
-      min-height: 36px;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f2f2f5;
     }
-    .label {
-      font-size: var(--font-label);
+    .field-label {
+      font-size: 0.97rem;
+      color: var(--field-label);
       font-weight: 600;
-      color: #534878;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      width: 102px;
+      min-width: 110px;
       flex-shrink: 0;
+    }
+    .field-value {
+      color: var(--field-value);
+      font-size: 1rem;
+      word-break: break-all;
       display: flex;
       align-items: center;
-      gap: 6px;
-    }
-    .value {
-      font-size: var(--font-value);
-      color: #3c3552;
-      word-break: break-word;
-      font-weight: 500;
-      letter-spacing: 0.01em;
-      flex: 1;
+      gap: 4px;
     }
 
-    #status {
-      margin-top: 12px;
-      font-style: italic;
-      min-height: 30px;
-      text-align: center;
-      font-size: 1.03rem;
-      border-radius: 12px;
-      padding: 7px 12px 7px 32px;
-      display: inline-block;
-      background: rgba(255,255,255,0.25);
-      color: var(--info);
-      box-shadow: 0 1px 6px rgba(102,126,234,0.09);
-      position: relative;
-      transition: var(--transition);
-      user-select: none;
+    .copy-btn {
+      margin-left: 6px;
+      padding: 2px 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background var(--transition), color var(--transition);
+      outline: none;
+      display: flex;
+      align-items: center;
+      opacity: 0.7;
+      font-size: 0;
     }
-    #status.success { color: var(--success);}
-    #status.error { color: var(--error);}
-    #status.info { color: var(--info);}
-    #status:before {
-      content: '';
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: currentColor;
-      opacity: 0.14;
-      pointer-events: none;
+    .copy-btn:hover, .copy-btn:focus {
+      background: #ece9f7;
+      opacity: 1;
     }
-
-    /* Spinner animation */
-    .spinner {
-      width: 28px;
-      height: 28px;
-      border: 3px solid #ccd6ff;
-      border-top: 3px solid var(--primary);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      margin: 20px auto 12px auto;
+    .copy-btn svg {
+      width: 18px;
+      height: 18px;
       display: block;
+      fill: #9ca3af;
+      transition: fill var(--transition);
     }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .copy-btn:active svg {
+      fill: var(--accent);
+    }
 
+    .profile-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    button {
+      padding: 12px 28px;
+      background: var(--primary-gradient);
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: var(--radius-pill);
+      box-shadow: 0 1.5px 8px rgba(102,126,234,0.10);
+      transition: box-shadow var(--transition), transform var(--transition), opacity var(--transition);
+      cursor: pointer;
+      outline: none;
+      position: relative;
+    }
+    button:hover, button:focus {
+      box-shadow: 0 8px 32px rgba(118,75,162,0.16);
+      transform: translateY(-1.5px) scale(1.01);
+      opacity: 0.98;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    .spinner {
+      margin: 0 auto 8px auto;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .spinner svg {
+      width: 32px;
+      height: 32px;
+      display: block;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg);}
+    }
+    .status-banner {
+      width: 100%;
+      border-radius: 12px;
+      background: var(--status-bg);
+      color: var(--status-fg);
+      font-size: 1rem;
+      padding: 12px;
+      text-align: center;
+      margin: 8px 0;
+      min-height: 24px;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.06);
+      transition: background 0.15s, color 0.15s;
+    }
+    .status-banner.error {
+      background: var(--error-bg);
+      color: var(--error-border);
+      border: 1px solid var(--error-border);
+    }
     @media (max-width: 600px) {
-      .center-container { min-height: 300px;}
-      #profile { padding: 30px 6vw; }
-      h1 { font-size: 2rem; }
-      .avatar { width: 50px; height: 50px; font-size: 1.3rem; }
-      .label { font-size: 0.8rem; }
-      .value { font-size: 0.95rem;}
-      .btn { padding: 11px 20px; font-size: 0.98rem; }
+      .container { padding: 16px; max-width: 98vw;}
+      .profile-avatar { width: 54px; height: 54px; font-size: 1.4rem;}
+      .profile-headline { font-size: 1.15rem;}
+      .profile-title { font-size: 0.92rem;}
     }
   </style>
 </head>
 <body>
+  <div class="container" id="profileContainer" style="display:none;">
+    <div id="avatar" class="profile-avatar"></div>
+    <div class="profile-headline" id="displayName"></div>
+    <div class="profile-title" id="jobTitle"></div>
+    <div class="fields">
+      <div class="field-row">
+        <span class="field-label">Email</span>
+        <span class="field-value" id="emailValue"></span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Department</span>
+        <span class="field-value" id="departmentValue"></span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">User Principal Name</span>
+        <span class="field-value" id="upnValue"></span>
+      </div>
+    </div>
+    <div class="profile-buttons">
+      <button id="loginBtn" type="button">Login</button>
+      <button id="logoutBtn" type="button" style="display:none;">Logout</button>
+    </div>
+    <div class="status-banner" id="statusBanner" aria-live="polite"></div>
+  </div>
+  <div class="spinner" id="spinner" style="display:none;">
+    <!-- Modern SVG spinner -->
+    <svg viewBox="0 0 50 50">
+      <circle cx="25" cy="25" r="18" fill="none" stroke="#667eea" stroke-width="6" opacity="0.13"/>
+      <circle cx="25" cy="25" r="18" fill="none" stroke="#667eea" stroke-width="6" stroke-linecap="round"
+        stroke-dasharray="60,100" stroke-dashoffset="0"/>
+    </svg>
+  </div>
 
-<h1>My Microsoft 365 Profile</h1>
-<div class="center-container">
-  <button class="btn" id="loginBtn">Login</button>
-  <button class="btn" id="logoutBtn" style="display:none;">Logout</button>
-  <div id="status" aria-live="polite"></div>
-  <div id="profile" aria-label="Profile Card"></div>
-</div>
-
-<script>
-  // ============ Modern Ripple for Buttons ============
-  function addRippleEffect(btn) {
-    btn.addEventListener("click", function (e) {
-      const rect = btn.getBoundingClientRect();
-      const ripple = document.createElement("span");
-      ripple.className = "ripple";
-      ripple.style.left = (e.clientX - rect.left) + "px";
-      ripple.style.top = (e.clientY - rect.top) + "px";
-      ripple.style.width = ripple.style.height = Math.max(rect.width, rect.height) + "px";
-      btn.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 500);
-    });
-  }
-  document.querySelectorAll('.btn').forEach(addRippleEffect);
-
-  // ============ MSAL Config ============
-  const msalConfig = {
-    auth: {
-      clientId: '4a1add08-6985-47df-bf49-ff14a8f25cdd',
-      authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
-      redirectUri: window.location.href
-    },
-    cache: {
-      cacheLocation: "localStorage",
-      storeAuthStateInCookie: false
-    }
-  };
-
-  const loginRequest = {
-    scopes: ['openid', 'profile', 'User.Read', 'offline_access']
-  };
-
-  const graphEndpoint = "https://graph.microsoft.com/v1.0/me?$select=displayName,mail,department,onPremisesDepartment,jobTitle,userPrincipalName";
-
-  const msalInstance = new msal.PublicClientApplication(msalConfig);
-
-  // ============ DOM Elements ============
-  const loginBtn = document.getElementById('loginBtn');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const statusDiv = document.getElementById('status');
-  const profileDiv = document.getElementById('profile');
-
-  loginBtn.addEventListener('click', () => {
-    msalInstance.loginRedirect(loginRequest);
-  });
-  logoutBtn.addEventListener('click', () => {
-    msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.href });
-  });
-
-  msalInstance.handleRedirectPromise()
-    .then(handleResponse)
-    .catch(err => {
-      console.error(err);
-      setStatus("Authentication error.", "error");
-    });
-
-  function setStatus(msg, type = "info") {
-    statusDiv.textContent = msg;
-    statusDiv.className = type ? type + " " : "" + "info";
-  }
-
-  function showSpinner(msg = "Loading...") {
-    profileDiv.style.display = "none";
-    setStatus(msg, "info");
-    statusDiv.innerHTML += `<span class="spinner"></span>`;
-  }
-
-  function handleResponse(response) {
-    let account = response?.account || msalInstance.getAllAccounts()[0];
-    if (account) {
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-block";
-      setStatus(`Logged in as ${account.username}`, "success");
-      fetchProfile(account);
-    }
-  }
-
-  async function fetchProfile(account) {
-    showSpinner("Fetching profile info...");
-    try {
-      const tokenResponse = await msalInstance.acquireTokenSilent({
-        account: account,
-        scopes: loginRequest.scopes
-      });
-      const accessToken = tokenResponse.accessToken;
-      const response = await fetch(graphEndpoint, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-      if (!response.ok) {
-        throw new Error(`Graph API error: ${response.status} ${response.statusText}`);
+  <script>
+    // Config as before
+    const msalConfig = {
+      auth: {
+        clientId: '4a1add08-6985-47df-bf49-ff14a8f25cdd',
+        authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
+        redirectUri: window.location.href
+      },
+      cache: {
+        cacheLocation: "localStorage",
+        storeAuthStateInCookie: false
       }
-      const profile = await response.json();
-      renderProfile(profile);
-      setStatus("Profile loaded", "success");
-    } catch (error) {
-      console.error(error);
-      setStatus("Error fetching profile, retrying login...", "error");
-      if (error instanceof msal.InteractionRequiredAuthError || error.errorCode === 'interaction_required') {
-        msalInstance.acquireTokenRedirect(loginRequest);
+    };
+    const loginRequest = {
+      scopes: ['openid', 'profile', 'User.Read', 'offline_access']
+    };
+    const graphEndpoint = "https://graph.microsoft.com/v1.0/me?$select=displayName,mail,department,onPremisesDepartment,jobTitle,userPrincipalName";
+
+    const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+    // UI Elements
+    const profileContainer = document.getElementById('profileContainer');
+    const avatarDiv = document.getElementById('avatar');
+    const displayNameDiv = document.getElementById('displayName');
+    const jobTitleDiv = document.getElementById('jobTitle');
+    const emailValue = document.getElementById('emailValue');
+    const departmentValue = document.getElementById('departmentValue');
+    const upnValue = document.getElementById('upnValue');
+    const statusBanner = document.getElementById('statusBanner');
+    const spinner = document.getElementById('spinner');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // Utility
+    function setStatus(message, isError=false) {
+      statusBanner.textContent = message || '';
+      statusBanner.className = 'status-banner' + (isError ? ' error' : '');
+    }
+    function showSpinner(show=true) {
+      spinner.style.display = show ? 'flex' : 'none';
+    }
+    function showProfile(show=true) {
+      profileContainer.style.display = show ? 'flex' : 'none';
+    }
+
+    // Avatar generator
+    function initialsFromName(name) {
+      if (!name) return '?';
+      const parts = name.trim().split(' ');
+      if (parts.length === 1) return parts[0][0].toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    // Copy to clipboard with feedback
+    function renderCopyIcon(val, ariaLabel) {
+      return `<button class="copy-btn" tabindex="0" aria-label="${ariaLabel}" data-copy="${val}">
+        <svg viewBox="0 0 24 24"><rect x="7" y="9" width="10" height="10" rx="2"/>
+        <path d="M9 7V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v6"/></svg>
+      </button>`;
+    }
+    function enableCopyBtns() {
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.onclick = async e => {
+          e.stopPropagation();
+          const val = btn.getAttribute('data-copy');
+          try {
+            await navigator.clipboard.writeText(val);
+            btn.blur();
+            btn.querySelector('svg').style.fill = '#667eea';
+            setTimeout(()=>btn.querySelector('svg').style.fill='', 650);
+            setStatus('Copied to clipboard!', false);
+          } catch {
+            setStatus('Copy failed!', true);
+          }
+        }
+      });
+    }
+
+    // Button actions
+    loginBtn.onclick = () => {
+      msalInstance.loginRedirect(loginRequest);
+    };
+    logoutBtn.onclick = () => {
+      msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.href });
+    };
+
+    // Main logic
+    async function fetchProfile(account) {
+      setStatus("Fetching profile info...");
+      showSpinner(true);
+      showProfile(false);
+      try {
+        const tokenResponse = await msalInstance.acquireTokenSilent({
+          account: account,
+          scopes: loginRequest.scopes
+        });
+        const accessToken = tokenResponse.accessToken;
+        const response = await fetch(graphEndpoint, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        if (!response.ok) throw new Error(`Graph API error: ${response.status} ${response.statusText}`);
+        const profile = await response.json();
+        renderProfile(profile, account.username);
+        setStatus("Profile loaded.");
+      } catch (error) {
+        if (error instanceof msal.InteractionRequiredAuthError || error.errorCode === 'interaction_required') {
+          msalInstance.acquireTokenRedirect(loginRequest);
+        } else {
+          setStatus("Failed to fetch profile.", true);
+        }
+      } finally {
+        showSpinner(false);
+      }
+    }
+
+    function renderProfile(profile, username) {
+      showProfile(true);
+      // Avatar
+      avatarDiv.textContent = initialsFromName(profile.displayName || username);
+      // Display Name
+      displayNameDiv.textContent = profile.displayName || username || '(No Name)';
+      // Job Title
+      jobTitleDiv.textContent = profile.jobTitle || '';
+      // Email
+      const email = profile.mail || profile.userPrincipalName || '';
+      emailValue.innerHTML = `<span>${email}</span>${renderCopyIcon(email, "Copy email")}`;
+      // Department
+      departmentValue.textContent = profile.department || profile.onPremisesDepartment || '(not set)';
+      // User Principal Name
+      upnValue.innerHTML = `<span>${profile.userPrincipalName || ''}</span>${renderCopyIcon(profile.userPrincipalName, "Copy UPN")}`;
+      enableCopyBtns();
+    }
+
+    // On load, handle redirect response
+    msalInstance.handleRedirectPromise()
+      .then(handleResponse)
+      .catch(err => {
+        setStatus("Authentication error.", true);
+        showProfile(false);
+        showSpinner(false);
+      });
+
+    function handleResponse(response) {
+      let account = response?.account || msalInstance.getAllAccounts()[0];
+      if (account) {
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-block";
+        fetchProfile(account);
       } else {
-        setStatus("Failed to fetch profile.", "error");
+        showProfile(true);
+        avatarDiv.textContent = '👤';
+        displayNameDiv.textContent = 'Sign in to view profile';
+        jobTitleDiv.textContent = '';
+        emailValue.innerHTML = `<span>-</span>`;
+        departmentValue.textContent = '-';
+        upnValue.innerHTML = `<span>-</span>`;
+        loginBtn.style.display = "inline-block";
+        logoutBtn.style.display = "none";
+        setStatus('Not signed in.');
       }
     }
-  }
-
-  function getInitials(name = "") {
-    let initials = name
-      .split(" ")
-      .filter(Boolean)
-      .map(w => w[0])
-      .slice(0, 2)
-      .join("");
-    return initials || "U";
-  }
-
-  // SVG icon templates (monoline, geometric, 1 color)
-  const icons = {
-    name: `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;" aria-hidden="true"><circle cx="10" cy="6.5" r="4" stroke="#667eea" stroke-width="1.5"/><path d="M4 16c0-2.2 2.9-4 6-4s6 1.8 6 4" stroke="#667eea" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`,
-    email: `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;" aria-hidden="true"><rect x="2" y="5" width="16" height="10" rx="2.5" stroke="#667eea" stroke-width="1.5"/><path d="M3 6l7 6 7-6" stroke="#667eea" stroke-width="1.5" fill="none"/></svg>`,
-    job: `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;" aria-hidden="true"><rect x="5" y="7" width="10" height="7" rx="2.5" stroke="#667eea" stroke-width="1.5"/><path d="M8 7V6a2 2 0 0 1 4 0v1" stroke="#667eea" stroke-width="1.5" fill="none"/></svg>`,
-    dept: `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;" aria-hidden="true"><rect x="3" y="8" width="14" height="6" rx="2.5" stroke="#667eea" stroke-width="1.5"/><path d="M7 8V6a3 3 0 0 1 6 0v2" stroke="#667eea" stroke-width="1.5" fill="none"/></svg>`,
-    upn: `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;" aria-hidden="true"><circle cx="10" cy="7" r="4" stroke="#667eea" stroke-width="1.5"/><rect x="4" y="13" width="12" height="4" rx="2" stroke="#667eea" stroke-width="1.5"/></svg>`
-  };
-
-  function renderProfile(profile) {
-    // Fade in card, show avatar, fields with icons
-    const dept = profile.department || profile.onPremisesDepartment || '(not set)';
-    const fieldsHTML = `
-      <div class="field">
-        <span class="label">${icons.name} Name</span>
-        <span class="value">${profile.displayName || ''}</span>
-      </div>
-      <div class="field">
-        <span class="label">${icons.email} Email</span>
-        <span class="value">${profile.mail || profile.userPrincipalName || ''}</span>
-      </div>
-      <div class="field">
-        <span class="label">${icons.job} Job Title</span>
-        <span class="value">${profile.jobTitle || '(not set)'}</span>
-      </div>
-      <div class="field">
-        <span class="label">${icons.dept} Department</span>
-        <span class="value">${dept}</span>
-      </div>
-      <div class="field">
-        <span class="label">${icons.upn} User Principal</span>
-        <span class="value">${profile.userPrincipalName || ''}</span>
-      </div>
-    `;
-    const initials = getInitials(profile.displayName);
-    profileDiv.innerHTML = `
-      <div class="avatar" aria-label="Avatar with initials">${initials}</div>
-      <div class="fields">${fieldsHTML}</div>
-    `;
-    profileDiv.classList.add("show");
-    profileDiv.style.display = "block";
-    profileDiv.setAttribute('tabindex', '0');
-  }
-</script>
-
+  </script>
 </body>
 </html>
