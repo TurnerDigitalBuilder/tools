@@ -5,151 +5,144 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>My Microsoft 365 Profile</title>
 <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+
 <style>
-  /* Design system variables */
   :root {
-    --blue: #0078d4;
-    --gray-dark: #333;
-    --gray-medium: #555;
-    --gray-light: #666;
-    --background: #f0f2f5;
-    --card-bg: #fff;
-    --border-radius: 8px;
-    --shadow: 0 4px 12px rgba(0,0,0,0.1);
-    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    --spacing-unit: 8px;
+    --primary-color: #0078d4;
+    --background-color: #f0f2f5;
+    --card-bg: rgba(255, 255, 255, 0.65);
+    --card-shadow: rgba(0, 0, 0, 0.12);
+    --text-primary: #212121;
+    --text-secondary: #555;
+    --text-muted: #666;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --border-radius: 12px;
+    --spacing-unit: 1rem;
+    --transition-speed: 0.3s;
   }
 
+  /* Reset & base */
   body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--background-color);
     font-family: var(--font-family);
-    margin: var(--spacing-unit) * 2;
-    background: var(--background);
-    color: var(--gray-dark);
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh;
-    padding: 24px 16px;
+    padding: 2rem 1rem;
+    color: var(--text-primary);
   }
 
   h1 {
-    color: var(--blue);
-    margin-bottom: calc(var(--spacing-unit) * 3);
-    font-weight: 600;
-    font-size: 2rem;
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    font-size: 2.25rem;
     text-align: center;
   }
 
+  /* Button container with spacing */
+  .button-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
   button {
-    background: var(--blue);
-    color: #fff;
+    background-color: var(--primary-color);
+    color: white;
     border: none;
     border-radius: var(--border-radius);
-    padding: 12px 24px;
+    padding: 0.75rem 1.75rem;
     font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
-    margin: 0 var(--spacing-unit) var(--spacing-unit) 0;
-    transition: background-color 0.25s ease;
-    box-shadow: 0 2px 6px rgba(0,120,212,0.3);
+    box-shadow: 0 4px 8px rgba(0, 120, 212, 0.3);
+    transition: background-color var(--transition-speed), box-shadow var(--transition-speed), transform var(--transition-speed);
+    user-select: none;
   }
 
   button:hover,
   button:focus {
-    background: #005a9e;
+    background-color: #005a9e;
+    box-shadow: 0 6px 12px rgba(0, 90, 158, 0.45);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(0,120,212,0.5);
+    transform: translateY(-2px);
   }
 
   button:disabled {
-    background: #a0aebf;
+    background-color: #a0a0a0;
     cursor: not-allowed;
     box-shadow: none;
+    transform: none;
   }
 
+  /* Status text with fade animation */
+  #status {
+    font-style: italic;
+    color: var(--text-muted);
+    min-height: 1.25rem;
+    margin-bottom: 1rem;
+    opacity: 0;
+    animation: fadeIn 0.5s forwards;
+  }
+
+  /* Profile container with glassmorphism */
   #profile {
-    max-width: 600px;
+    max-width: 480px;
     width: 100%;
     background: var(--card-bg);
-    padding: calc(var(--spacing-unit) * 3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    margin-top: calc(var(--spacing-unit) * 3);
+    box-shadow: 0 8px 32px var(--card-shadow);
+    padding: 2rem;
+    color: var(--text-primary);
     display: none;
   }
 
+  /* Profile field styling */
   .field {
+    margin-bottom: 1.25rem;
     display: flex;
-    margin-bottom: var(--spacing-unit);
     flex-wrap: wrap;
   }
 
   .label {
-    font-weight: 600;
-    color: var(--gray-dark);
+    font-weight: 700;
+    color: var(--primary-color);
     min-width: 140px;
   }
 
   .value {
-    color: var(--gray-medium);
-    flex: 1;
+    color: var(--text-secondary);
+    flex-grow: 1;
     word-break: break-word;
   }
 
-  #status {
-    margin-top: var(--spacing-unit);
-    font-style: italic;
-    color: var(--gray-light);
-    min-height: 1.2em;
-    text-align: center;
+  /* Fade in animation */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
-  /* Loading spinner */
-  #spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid var(--blue);
-    border-radius: 50%;
-    border-top-color: transparent;
-    animation: spin 1s linear infinite;
-    vertical-align: middle;
-    margin-left: 8px;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* Responsive adjustments */
-  @media (max-width: 480px) {
-    #profile {
-      padding: calc(var(--spacing-unit) * 2);
-    }
-    .label {
-      min-width: 120px;
-      font-size: 0.9rem;
-    }
-    button {
-      width: 100%;
-      margin: 0 0 var(--spacing-unit) 0;
-    }
-  }
 </style>
 </head>
 <body>
 
 <h1>My Microsoft 365 Profile</h1>
 
-<div>
+<div class="button-group">
   <button id="loginBtn" aria-label="Login to Microsoft account">Login</button>
-  <button id="logoutBtn" style="display:none;" aria-label="Logout from Microsoft account">Logout</button>
+  <button id="logoutBtn" aria-label="Logout from Microsoft account" style="display:none;">Logout</button>
 </div>
 
-<div id="status" role="status" aria-live="polite"></div>
-<div id="profile" aria-live="polite"></div>
+<div id="status" aria-live="polite" aria-atomic="true"></div>
+<section id="profile" aria-label="User profile information"></section>
 
 <script>
+  // ... your existing JS code unchanged except for adding fade-in effect on status updates:
   const msalConfig = {
     auth: {
       clientId: '4a1add08-6985-47df-bf49-ff14a8f25cdd',
@@ -187,21 +180,29 @@
     .then(handleResponse)
     .catch(err => {
       console.error(err);
-      statusDiv.textContent = "Authentication error.";
+      updateStatus("Authentication error.");
     });
+
+  function updateStatus(message) {
+    statusDiv.style.opacity = 0;
+    setTimeout(() => {
+      statusDiv.textContent = message;
+      statusDiv.style.opacity = 1;
+    }, 250);
+  }
 
   function handleResponse(response) {
     let account = response?.account || msalInstance.getAllAccounts()[0];
     if (account) {
       loginBtn.style.display = "none";
       logoutBtn.style.display = "inline-block";
-      statusDiv.textContent = `Logged in as ${account.username}`;
+      updateStatus(`Logged in as ${account.username}`);
       fetchProfile(account);
     }
   }
 
   async function fetchProfile(account) {
-    statusDiv.innerHTML = "Fetching profile info <span id='spinner' aria-hidden='true'></span>";
+    updateStatus("Fetching profile info...");
     profileDiv.style.display = "none";
     try {
       const tokenResponse = await msalInstance.acquireTokenSilent({
@@ -221,14 +222,14 @@
 
       const profile = await response.json();
       renderProfile(profile);
-      statusDiv.textContent = "Profile loaded";
+      updateStatus("Profile loaded");
     } catch (error) {
       console.error(error);
-      statusDiv.textContent = "Error fetching profile, retrying login...";
+      updateStatus("Error fetching profile, retrying login...");
       if (error instanceof msal.InteractionRequiredAuthError || error.errorCode === 'interaction_required') {
         msalInstance.acquireTokenRedirect(loginRequest);
       } else {
-        statusDiv.textContent = "Failed to fetch profile.";
+        updateStatus("Failed to fetch profile.");
       }
     }
   }
