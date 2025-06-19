@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Microsoft 365 Profile</title>
+<script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f0f2f5; }
+  h1 { color: #0078d4; }
+  button { padding: 10px 20px; margin: 10px 5px 20px; font-size: 16px; cursor: pointer; }
+  #profile { max-width: 600px; background: #fff; padding: 20px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  .field { margin-bottom: 12px; }
+  .label { font-weight: bold; color: #333; }
+  .value { margin-left: 8px; color: #555; }
+  #status { margin-top: 10px; font-style: italic; color: #666; }
+</style>
+</head>
+<body>
+
+<h1>My Microsoft 365 Profile</h1>
+
+<button id="loginBtn">Login</button>
+<button id="logoutBtn" style="display:none;">Logout</button>
+
+<div id="status"></div>
+<div id="profile" style="display:none;"></div>
+
+<script>
+  const msalConfig = {
+    auth: {
+      clientId: '777f7fc2-a83e-43fe-b79e-209fa7b089c9', // Your client ID
+      authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289', // Your tenant ID
+      redirectUri: window.location.href
+    },
+    cache: {
+      cacheLocation: "localStorage",
+      storeAuthStateInCookie: false
+    }
+  };
+
+  const loginRequest = {
+    scopes: ['openid', 'profile', 'User.Read', 'offline_access']
+  };
+
+  const graphEndpoint = "https://graph.microsoft.com/v1.0/me";
+
+  const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const statusDiv = document.getElementById('status');
+  const profileDiv = document.getElementById('profile');
+
+  loginBtn.addEventListener('click', () => {
+    msalInstance.loginRedirect(loginRequest);
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.href });
+  });
+
+  msalInstance.handleRedirectPromise()
+    .then(handleResponse)
+    .catch(err => {
+      console.error(err);
+      statusDiv.textContent = "Authentication error.";
+    });
+
+  function handleResponse(response) {
+    let account = response?.account || msalInstance.getAllAccounts()[0];
+    if (account) {
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
+      statusDiv.textContent = `Logged in as ${account.username}`;
+      fetchProfile(account);
+    }
+  }
+
+  async function fetchProfile(account) {
+    statusDiv.textContent = "Fetching profile info...";
+    profileDiv.style.display = "none";
+    try {
+      const tokenResponse = await msalInstance.acquireTokenSilent({
+        account: account,
+        scopes: loginRequest.scopes
+      });
+
+      const accessToken = tokenResponse.accessToken;
+
+      const response = await fetch(graphEndpoint, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Graph API error: ${response.status} ${response.statusText}`);
+      }
+
+      const profile = await response.json();
+      renderProfile(profile);
+      statusDiv.textContent = "Profile loaded";
+    } catch (error) {
+      console.error(error);
+      statusDiv.textContent = "Error fetching profile, retrying login...";
+      if (error instanceof msal.InteractionRequiredAuthError || error.errorCode === 'interaction_required') {
+        msalInstance.acquireTokenRedirect(loginRequest);
+      } else {
+        statusDiv.textContent = "Failed to fetch profile.";
+      }
+    }
+  }
+
+  function renderProfile(profile) {
+    profileDiv.style.display = "block";
+    profileDiv.innerHTML = `
+      <div class="field"><span class="label">Display Name:</span><span class="value">${profile.displayName || ''}</span></div>
+      <div class="field"><span class="label">Email:</span><span class="value">${profile.mail || profile.userPrincipalName || ''}</span></div>
+      <div class="field"><span class="label">Job Title:</span><span class="value">${profile.jobTitle || ''}</span></div>
+      <div class="field"><span class="label">Department:</span><span class="value">${profile.department || ''}</span></div>
+      <div class="field"><span class="label">User Principal Name:</span><span class="value">${profile.userPrincipalName || ''}</span></div>
+    `;
+  }
+</script>
+
+</body>
+</html>
