@@ -5,418 +5,427 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>My Microsoft 365 Profile</title>
   <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --surface-glass: rgba(255,255,255,0.75);
-      --surface-glass-strong: rgba(255,255,255,0.92);
-      --card-shadow: 0 8px 32px rgba(103,119,239,0.14), 0 1.5px 8px rgba(118,75,162,0.13);
       --primary: #667eea;
-      --danger: #ff375f;
-      --text-main: #22223b;
-      --text-muted: #667;
-      --spacing: 8px;
-      --radius-pill: 999px;
-      --radius-card: 24px;
+      --accent: #764ba2;
+      --neutral-bg: #f8fafd;
+      --card-bg: rgba(255,255,255,0.85);
+      --card-blur: blur(14px);
+      --shadow1: 0 2px 24px rgba(102,126,234,0.18);
+      --shadow2: 0 4px 8px rgba(76,81,255,0.07);
+      --radius: 2rem;
+      --pill-radius: 50px;
+      --icon-size: 1.1rem;
+      --transition: all 0.3s cubic-bezier(.39,.58,.57,1);
+      --error: #e55353;
+      --success: #23c686;
+      --info: #0078d4;
+      --field-space: 16px;
       --avatar-size: 64px;
-      --transition: all 0.3s cubic-bezier(.4,0,.2,1);
+      --font-label: 0.85rem;
+      --font-value: 1.07rem;
+      --font-headline: 2.5rem;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      background: var(--neutral-bg);
+      font-family: 'Inter', system-ui, sans-serif;
     }
 
     body {
       min-height: 100vh;
-      font-family: 'Inter', Arial, sans-serif;
-      background: linear-gradient(135deg, #e0e7ff 0%, #f0c4ff 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      margin: 0;
-      padding: var(--spacing);
+      justify-content: center;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
 
     h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
+      font-size: var(--font-headline);
+      color: #fff;
+      text-shadow: 0 2px 12px rgba(118,75,162,0.18);
+      margin-bottom: 32px;
       letter-spacing: -1px;
-      color: #4b3b76;
-      margin: 2.5rem 0 1rem 0;
+      font-weight: 800;
       text-align: center;
-      text-shadow: 0 1px 8px #764ba24d;
+      line-height: 1.1;
+      user-select: none;
     }
 
-    .centered-container {
-      width: 100%;
-      max-width: 420px;
-      margin: 0 auto;
-      padding: 0 var(--spacing);
+    .center-container {
       display: flex;
       flex-direction: column;
       align-items: center;
+      width: 100%;
+      min-height: 440px;
+      justify-content: center;
     }
 
-    .glassy-card {
-      width: 100%;
-      background: var(--surface-glass);
-      border-radius: var(--radius-card);
-      box-shadow: var(--card-shadow);
-      backdrop-filter: blur(12px) saturate(1.4);
-      -webkit-backdrop-filter: blur(12px) saturate(1.4);
-      padding: 2.5rem 2rem 2rem 2rem;
-      margin-top: 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      opacity: 0;
-      transform: translateY(36px) scale(.97);
-      animation: fadeInCard 0.7s 0.2s cubic-bezier(.42,0,.58,1) forwards;
+    .btn {
+      padding: 12px 32px;
+      border: none;
+      outline: none;
+      border-radius: var(--pill-radius);
+      font-size: 1.07rem;
+      font-weight: 600;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: #fff;
+      box-shadow: var(--shadow2);
+      cursor: pointer;
+      transition: var(--transition);
+      margin: 0 6px 22px 6px;
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.02em;
+      min-width: 110px;
+      z-index: 0;
     }
-    @keyframes fadeInCard {
+    .btn:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+    }
+    .btn:hover, .btn:active {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: var(--shadow1);
+      filter: brightness(1.05);
+    }
+    /* Ripple effect */
+    .btn .ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple 0.45s linear;
+      background: rgba(255,255,255,0.32);
+      pointer-events: none;
+    }
+    @keyframes ripple {
       to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: scale(4);
+        opacity: 0;
       }
+    }
+
+    #profile {
+      display: none;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow1), var(--shadow2);
+      padding: 40px 30px 32px;
+      max-width: 400px;
+      width: 100%;
+      margin: 0 auto;
+      backdrop-filter: var(--card-blur);
+      -webkit-backdrop-filter: var(--card-blur);
+      transition: var(--transition), opacity 0.7s;
+      opacity: 0;
+      transform: translateY(30px);
+      pointer-events: auto;
+      position: relative;
+      z-index: 1;
+      border: 1px solid rgba(180,180,255,0.09);
+      animation: cardIn 0.7s cubic-bezier(.27,.77,.43,1.11) forwards;
+    }
+    @keyframes cardIn {
+      0% { opacity: 0; transform: translateY(30px);}
+      100% { opacity: 1; transform: translateY(0);}
+    }
+    #profile.show {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #profile:hover {
+      box-shadow: 0 4px 32px rgba(102,126,234,0.20), 0 4px 16px rgba(76,81,255,0.10);
+      transform: translateY(-2px) scale(1.01);
     }
 
     .avatar {
       width: var(--avatar-size);
       height: var(--avatar-size);
       border-radius: 50%;
-      background: var(--primary-gradient);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
       font-weight: 700;
-      color: #fff;
+      font-size: 2rem;
       letter-spacing: 1px;
-      box-shadow: 0 3px 16px #667eea44;
-      margin-bottom: 1.5rem;
-      text-transform: uppercase;
+      margin: 0 auto 24px auto;
+      box-shadow: 0 2px 12px rgba(102,126,234,0.17);
       user-select: none;
-      transition: var(--transition);
-      outline: 3px solid #fff7;
+      text-transform: uppercase;
+      border: 4px solid #fff;
     }
 
-    .fields-list {
-      width: 100%;
+    .fields {
+      display: flex;
+      flex-direction: column;
+      gap: var(--field-space);
+      margin-top: 8px;
+      margin-bottom: 2px;
     }
-
     .field {
       display: flex;
-      align-items: flex-start;
-      margin-bottom: var(--spacing);
+      align-items: center;
+      gap: 12px;
+      min-height: 36px;
     }
     .label {
-      font-size: 1rem;
+      font-size: var(--font-label);
       font-weight: 600;
-      color: var(--text-main);
-      min-width: 110px;
-      letter-spacing: .02em;
-    }
-    .value {
-      font-size: 1rem;
-      font-weight: 400;
-      color: var(--text-muted);
-      word-break: break-all;
-    }
-
-    .pill-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.75rem 2.1rem;
-      font-size: 1.08rem;
-      font-weight: 600;
-      border: none;
-      border-radius: var(--radius-pill);
-      background: var(--primary-gradient);
-      color: #fff;
-      margin: 0 var(--spacing) 2.5rem 0;
-      box-shadow: 0 2px 16px #667eea29;
-      cursor: pointer;
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
-      outline: none;
-      letter-spacing: .03em;
-      z-index: 1;
-    }
-    .pill-btn:last-child {
-      margin-right: 0;
-    }
-    .pill-btn:active,
-    .pill-btn:focus {
-      filter: brightness(.98) drop-shadow(0 0 3px #764ba270);
-      outline: 2px solid #764ba255;
-    }
-    .pill-btn:hover {
-      transform: translateY(-2px) scale(1.04);
-      box-shadow: 0 6px 20px #764ba238;
-      filter: brightness(1.09);
-    }
-    .pill-btn .ripple {
-      position: absolute;
-      border-radius: 50%;
-      transform: scale(0);
-      animation: ripple 0.5s linear;
-      background: #fff7;
-      pointer-events: none;
-      z-index: 2;
-    }
-    @keyframes ripple {
-      to {
-        transform: scale(4.5);
-        opacity: 0;
-      }
-    }
-
-    .status-bar {
-      min-height: 40px;
-      margin: 0 0 18px 0;
-      padding: 0 var(--spacing);
-      width: 100%;
-      max-width: 440px;
+      color: #534878;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      width: 102px;
+      flex-shrink: 0;
       display: flex;
       align-items: center;
-      font-size: 1.08rem;
-      font-style: italic;
-      color: #54496d;
-      background: var(--surface-glass-strong);
-      border-radius: 13px;
-      box-shadow: 0 2px 12px #667eea13;
-      opacity: 0;
-      transform: translateY(-24px);
-      transition: var(--transition);
-      will-change: opacity, transform;
+      gap: 6px;
     }
-    .status-bar.show {
-      opacity: 1;
-      transform: translateY(0);
-      animation: fadeInStatus 0.5s cubic-bezier(.4,0,.2,1);
-    }
-    .status-bar.error {
-      color: var(--danger);
-      background: #fff3f6;
-      border: 1.5px solid #ffb3c9;
-      font-style: normal;
-    }
-    @keyframes fadeInStatus {
-      from { opacity: 0; transform: translateY(-20px);}
-      to { opacity: 1; transform: translateY(0);}
+    .value {
+      font-size: var(--font-value);
+      color: #3c3552;
+      word-break: break-word;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      flex: 1;
     }
 
+    #status {
+      margin-top: 12px;
+      font-style: italic;
+      min-height: 30px;
+      text-align: center;
+      font-size: 1.03rem;
+      border-radius: 12px;
+      padding: 7px 12px 7px 32px;
+      display: inline-block;
+      background: rgba(255,255,255,0.25);
+      color: var(--info);
+      box-shadow: 0 1px 6px rgba(102,126,234,0.09);
+      position: relative;
+      transition: var(--transition);
+      user-select: none;
+    }
+    #status.success { color: var(--success);}
+    #status.error { color: var(--error);}
+    #status.info { color: var(--info);}
+    #status:before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.14;
+      pointer-events: none;
+    }
+
+    /* Spinner animation */
     .spinner {
       width: 28px;
       height: 28px;
-      margin-right: 12px;
-      display: inline-block;
-      vertical-align: middle;
+      border: 3px solid #ccd6ff;
+      border-top: 3px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 20px auto 12px auto;
+      display: block;
     }
-    .spinner circle {
-      stroke: url(#spinner-gradient);
-      stroke-width: 4;
-      stroke-linecap: round;
-      animation: spinner-rotate 0.8s linear infinite;
-      transform-origin: 50% 50%;
-    }
-    @keyframes spinner-rotate {
-      100% { transform: rotate(360deg);}
-    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
 
     @media (max-width: 600px) {
+      .center-container { min-height: 300px;}
+      #profile { padding: 30px 6vw; }
       h1 { font-size: 2rem; }
-      .glassy-card { padding: 1.4rem 0.8rem 1.1rem 0.8rem; }
-      .pill-btn { font-size: 0.98rem; padding: 0.67rem 1.3rem;}
-      .centered-container { max-width: 97vw;}
-      .avatar { width: 48px; height: 48px; font-size: 1.2rem;}
-      .field .label { min-width: 86px;}
+      .avatar { width: 50px; height: 50px; font-size: 1.3rem; }
+      .label { font-size: 0.8rem; }
+      .value { font-size: 0.95rem;}
+      .btn { padding: 11px 20px; font-size: 0.98rem; }
     }
   </style>
 </head>
 <body>
-  <h1>My Microsoft 365 Profile</h1>
-  <div class="centered-container">
-    <button id="loginBtn" class="pill-btn">Login</button>
-    <button id="logoutBtn" class="pill-btn" style="display:none;">Logout</button>
-    <div id="statusBar" class="status-bar" aria-live="polite"></div>
-    <div id="profileCard" class="glassy-card" style="display:none;"></div>
-  </div>
 
-  <!-- Spinner SVG gradient defs (hidden, for use in JS) -->
-  <svg width="0" height="0" style="position:absolute">
-    <defs>
-      <linearGradient id="spinner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#667eea" />
-        <stop offset="100%" stop-color="#764ba2" />
-      </linearGradient>
-    </defs>
-  </svg>
+<h1>My Microsoft 365 Profile</h1>
+<div class="center-container">
+  <button class="btn" id="loginBtn">Login</button>
+  <button class="btn" id="logoutBtn" style="display:none;">Logout</button>
+  <div id="status" aria-live="polite"></div>
+  <div id="profile" aria-label="Profile Card"></div>
+</div>
 
-  <script>
-    // MSAL config
-    const msalConfig = {
-      auth: {
-        clientId: '4a1add08-6985-47df-bf49-ff14a8f25cdd',
-        authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
-        redirectUri: window.location.href
-      },
-      cache: { cacheLocation: "localStorage", storeAuthStateInCookie: false }
-    };
-    const loginRequest = { scopes: ['openid', 'profile', 'User.Read', 'offline_access'] };
-    const graphEndpoint = "https://graph.microsoft.com/v1.0/me?$select=displayName,mail,department,onPremisesDepartment,jobTitle,userPrincipalName,givenName,surname";
+<script>
+  // ============ Modern Ripple for Buttons ============
+  function addRippleEffect(btn) {
+    btn.addEventListener("click", function (e) {
+      const rect = btn.getBoundingClientRect();
+      const ripple = document.createElement("span");
+      ripple.className = "ripple";
+      ripple.style.left = (e.clientX - rect.left) + "px";
+      ripple.style.top = (e.clientY - rect.top) + "px";
+      ripple.style.width = ripple.style.height = Math.max(rect.width, rect.height) + "px";
+      btn.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 500);
+    });
+  }
+  document.querySelectorAll('.btn').forEach(addRippleEffect);
 
-    // DOM refs
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const statusBar = document.getElementById('statusBar');
-    const profileCard = document.getElementById('profileCard');
+  // ============ MSAL Config ============
+  const msalConfig = {
+    auth: {
+      clientId: '4a1add08-6985-47df-bf49-ff14a8f25cdd',
+      authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
+      redirectUri: window.location.href
+    },
+    cache: {
+      cacheLocation: "localStorage",
+      storeAuthStateInCookie: false
+    }
+  };
 
-    // Button ripple
-    [loginBtn, logoutBtn].forEach(btn => {
-      btn.addEventListener('click', function(e){
-        let circle = document.createElement("span");
-        circle.classList.add("ripple");
-        let size = Math.max(btn.offsetWidth, btn.offsetHeight);
-        circle.style.width = circle.style.height = size + 'px';
-        circle.style.left = (e.offsetX - size/2) + 'px';
-        circle.style.top = (e.offsetY - size/2) + 'px';
-        btn.appendChild(circle);
-        setTimeout(() => circle.remove(), 500);
+  const loginRequest = {
+    scopes: ['openid', 'profile', 'User.Read', 'offline_access']
+  };
+
+  const graphEndpoint = "https://graph.microsoft.com/v1.0/me?$select=displayName,mail,department,onPremisesDepartment,jobTitle,userPrincipalName";
+
+  const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+  // ============ DOM Elements ============
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const statusDiv = document.getElementById('status');
+  const profileDiv = document.getElementById('profile');
+
+  loginBtn.addEventListener('click', () => {
+    msalInstance.loginRedirect(loginRequest);
+  });
+  logoutBtn.addEventListener('click', () => {
+    msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.href });
+  });
+
+  msalInstance.handleRedirectPromise()
+    .then(handleResponse)
+    .catch(err => {
+      console.error(err);
+      setStatus("Authentication error.", "error");
+    });
+
+  function setStatus(msg, type = "info") {
+    statusDiv.textContent = msg;
+    statusDiv.className = type ? type + " " : "" + "info";
+  }
+
+  function showSpinner(msg = "Loading...") {
+    profileDiv.style.display = "none";
+    setStatus(msg, "info");
+    statusDiv.innerHTML += `<span class="spinner"></span>`;
+  }
+
+  function handleResponse(response) {
+    let account = response?.account || msalInstance.getAllAccounts()[0];
+    if (account) {
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
+      setStatus(`Logged in as ${account.username}`, "success");
+      fetchProfile(account);
+    }
+  }
+
+  async function fetchProfile(account) {
+    showSpinner("Fetching profile info...");
+    try {
+      const tokenResponse = await msalInstance.acquireTokenSilent({
+        account: account,
+        scopes: loginRequest.scopes
       });
-    });
-
-    // Status bar helper
-    function showStatus(message, { error = false, loading = false } = {}) {
-      statusBar.innerHTML = '';
-      statusBar.className = 'status-bar';
-      if (error) statusBar.classList.add('error');
-      if (loading) {
-        statusBar.innerHTML = `
-          <svg class="spinner" viewBox="0 0 44 44">
-            <circle cx="22" cy="22" r="17" fill="none" />
-          </svg>
-          <span>${message}</span>
-        `;
-      } else {
-        statusBar.textContent = message;
-      }
-      statusBar.classList.add('show');
-    }
-    function hideStatus() {
-      statusBar.classList.remove('show', 'error');
-      setTimeout(() => { statusBar.textContent = ''; }, 350);
-    }
-
-    // MSAL instance
-    const msalInstance = new msal.PublicClientApplication(msalConfig);
-
-    loginBtn.addEventListener('click', () => {
-      msalInstance.loginRedirect(loginRequest);
-    });
-    logoutBtn.addEventListener('click', () => {
-      msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.href });
-    });
-
-    msalInstance.handleRedirectPromise()
-      .then(handleResponse)
-      .catch(err => {
-        console.error(err);
-        showStatus("Authentication error.", { error: true });
+      const accessToken = tokenResponse.accessToken;
+      const response = await fetch(graphEndpoint, {
+        headers: { Authorization: `Bearer ${accessToken}` }
       });
-
-    function handleResponse(response) {
-      let account = response?.account || msalInstance.getAllAccounts()[0];
-      if (account) {
-        loginBtn.style.display = "none";
-        logoutBtn.style.display = "inline-flex";
-        showStatus(`Logged in as ${account.username}`, { loading: false });
-        fetchProfile(account);
+      if (!response.ok) {
+        throw new Error(`Graph API error: ${response.status} ${response.statusText}`);
       }
-    }
-
-    async function fetchProfile(account) {
-      showStatus("Fetching profile info...", { loading: true });
-      profileCard.style.display = "none";
-      try {
-        const tokenResponse = await msalInstance.acquireTokenSilent({
-          account: account,
-          scopes: loginRequest.scopes
-        });
-
-        const accessToken = tokenResponse.accessToken;
-        const response = await fetch(graphEndpoint, {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        });
-        if (!response.ok) throw new Error(`Graph API error: ${response.status} ${response.statusText}`);
-
-        const profile = await response.json();
-        renderProfile(profile);
-        showStatus("Profile loaded.");
-        setTimeout(hideStatus, 1400);
-      } catch (error) {
-        console.error(error);
-        showStatus("Error fetching profile, retrying login...", { error: true });
-        if (error instanceof msal.InteractionRequiredAuthError || error.errorCode === 'interaction_required') {
-          msalInstance.acquireTokenRedirect(loginRequest);
-        } else {
-          showStatus("Failed to fetch profile.", { error: true });
-        }
-      }
-    }
-
-    function getInitials(profile) {
-      // Prefer given/surname, else parse displayName/email
-      if (profile.givenName && profile.surname) {
-        return (profile.givenName[0] + profile.surname[0]).toUpperCase();
-      }
-      if (profile.displayName) {
-        let parts = profile.displayName.split(' ');
-        if (parts.length >= 2)
-          return (parts[0][0] + parts[1][0]).toUpperCase();
-        return parts[0][0].toUpperCase();
-      }
-      if (profile.mail)
-        return profile.mail[0].toUpperCase();
-      if (profile.userPrincipalName)
-        return profile.userPrincipalName[0].toUpperCase();
-      return "?";
-    }
-
-    function renderProfile(profile) {
-      profileCard.style.display = "flex";
-      // Department fallback
-      const dept = profile.department || profile.onPremisesDepartment || '(not set)';
-      // Avatar
-      const initials = getInitials(profile);
-
-      profileCard.innerHTML = `
-        <div class="avatar" title="Profile Avatar">${initials}</div>
-        <div class="fields-list">
-          <div class="field"><span class="label">Display Name:</span><span class="value">${profile.displayName || ''}</span></div>
-          <div class="field"><span class="label">Email:</span><span class="value">${profile.mail || profile.userPrincipalName || ''}</span></div>
-          <div class="field"><span class="label">Job Title:</span><span class="value">${profile.jobTitle || ''}</span></div>
-          <div class="field"><span class="label">Department:</span><span class="value">${dept}</span></div>
-          <div class="field"><span class="label">User Principal Name:</span><span class="value">${profile.userPrincipalName || ''}</span></div>
-        </div>
-      `;
-    }
-
-    // On load: check if user is already signed in
-    window.addEventListener('DOMContentLoaded', () => {
-      let account = msalInstance.getAllAccounts()[0];
-      if (account) {
-        loginBtn.style.display = "none";
-        logoutBtn.style.display = "inline-flex";
-        showStatus(`Logged in as ${account.username}`);
-        fetchProfile(account);
+      const profile = await response.json();
+      renderProfile(profile);
+      setStatus("Profile loaded", "success");
+    } catch (error) {
+      console.error(error);
+      setStatus("Error fetching profile, retrying login...", "error");
+      if (error instanceof msal.InteractionRequiredAuthError || error.errorCode === 'interaction_required') {
+        msalInstance.acquireTokenRedirect(loginRequest);
       } else {
-        loginBtn.style.display = "inline-flex";
-        logoutBtn.style.display = "none";
+        setStatus("Failed to fetch profile.", "error");
       }
-    });
-  </script>
+    }
+  }
+
+  function getInitials(name = "") {
+    let initials = name
+      .split(" ")
+      .filter(Boolean)
+      .map(w => w[0])
+      .slice(0, 2)
+      .join("");
+    return initials || "U";
+  }
+
+  // SVG icon templates (monoline, geometric, 1 color)
+  const icons = {
+    name: `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;" aria-hidden="true"><circle cx="10" cy="6.5" r="4" stroke="#667eea" stroke-width="1.5"/><path d="M4 16c0-2.2 2.9-4 6-4s6 1.8 6 4" stroke="#667eea" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`,
+    email: `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;" aria-hidden="true"><rect x="2" y="5" width="16" height="10" rx="2.5" stroke="#667eea" stroke-width="1.5"/><path d="M3 6l7 6 7-6" stroke="#667eea" stroke-width="1.5" fill="none"/></svg>`,
+    job: `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;" aria-hidden="true"><rect x="5" y="7" width="10" height="7" rx="2.5" stroke="#667eea" stroke-width="1.5"/><path d="M8 7V6a2 2 0 0 1 4 0v1" stroke="#667eea" stroke-width="1.5" fill="none"/></svg>`,
+    dept: `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;" aria-hidden="true"><rect x="3" y="8" width="14" height="6" rx="2.5" stroke="#667eea" stroke-width="1.5"/><path d="M7 8V6a3 3 0 0 1 6 0v2" stroke="#667eea" stroke-width="1.5" fill="none"/></svg>`,
+    upn: `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;" aria-hidden="true"><circle cx="10" cy="7" r="4" stroke="#667eea" stroke-width="1.5"/><rect x="4" y="13" width="12" height="4" rx="2" stroke="#667eea" stroke-width="1.5"/></svg>`
+  };
+
+  function renderProfile(profile) {
+    // Fade in card, show avatar, fields with icons
+    const dept = profile.department || profile.onPremisesDepartment || '(not set)';
+    const fieldsHTML = `
+      <div class="field">
+        <span class="label">${icons.name} Name</span>
+        <span class="value">${profile.displayName || ''}</span>
+      </div>
+      <div class="field">
+        <span class="label">${icons.email} Email</span>
+        <span class="value">${profile.mail || profile.userPrincipalName || ''}</span>
+      </div>
+      <div class="field">
+        <span class="label">${icons.job} Job Title</span>
+        <span class="value">${profile.jobTitle || '(not set)'}</span>
+      </div>
+      <div class="field">
+        <span class="label">${icons.dept} Department</span>
+        <span class="value">${dept}</span>
+      </div>
+      <div class="field">
+        <span class="label">${icons.upn} User Principal</span>
+        <span class="value">${profile.userPrincipalName || ''}</span>
+      </div>
+    `;
+    const initials = getInitials(profile.displayName);
+    profileDiv.innerHTML = `
+      <div class="avatar" aria-label="Avatar with initials">${initials}</div>
+      <div class="fields">${fieldsHTML}</div>
+    `;
+    profileDiv.classList.add("show");
+    profileDiv.style.display = "block";
+    profileDiv.setAttribute('tabindex', '0');
+  }
+</script>
+
 </body>
 </html>
