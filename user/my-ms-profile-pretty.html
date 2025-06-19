@@ -324,4 +324,109 @@
 
   // Allow user to upload avatar as fallback
   function avatarUploadHandler(e) {
-    if (e.target.files && e
+    if (e.target.files && e.target.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        saveAvatarDataURL(ev.target.result);
+        document.getElementById("avatar").src = ev.target.result;
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  }
+  fileInput.addEventListener('change', avatarUploadHandler);
+
+  // Avatar click: open upload dialog
+  function enableAvatarUpload() {
+    const avatar = document.getElementById('avatar');
+    if (!avatar) return;
+    avatar.tabIndex = 0;
+    avatar.setAttribute("title", "Upload custom photo");
+    avatar.onclick = () => fileInput.click();
+    avatar.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") fileInput.click(); };
+  }
+
+  async function fetchProfile(account) {
+    setStatus("Loading your profile...", "loading");
+    profileDiv.innerHTML = `<div class="spinner" aria-label="Loading..."></div>`;
+    profileDiv.style.display = "block";
+    try {
+      const tokenResponse = await msalInstance.acquireTokenSilent({
+        account: account,
+        scopes: loginRequest.scopes
+      });
+      const accessToken = tokenResponse.accessToken;
+
+      // Get profile info
+      const profileRes = await fetch(graphProfileEndpoint, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (!profileRes.ok) throw new Error("Graph API error: " + profileRes.status);
+      const profile = await profileRes.json();
+
+      // Try to fetch photo (optional, but skip if user uploaded fallback)
+      let avatarDataUrl = getAvatarDataURL();
+      if (!avatarDataUrl) {
+        try {
+          const photoRes = await fetch(graphPhotoEndpoint, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+          if (photoRes.ok) {
+            const blob = await photoRes.blob();
+            avatarDataUrl = URL.createObjectURL(blob);
+          }
+        } catch (err) { /* ignore */ }
+      }
+
+      renderProfile(profile, avatarDataUrl);
+      setStatus("Profile loaded.", "success");
+    } catch (error) {
+      console.error(error);
+      setStatus("Error fetching profile. Please try again.", "error");
+      if (error instanceof msal.InteractionRequiredAuthError || error.errorCode === 'interaction_required') {
+        msalInstance.acquireTokenRedirect(loginRequest);
+      }
+    }
+  }
+
+  function renderProfile(profile, avatarUrl) {
+    profileDiv.style.display = "block";
+    const dept = profile.department || profile.onPremisesDepartment || '(not set)';
+    // Use initials avatar as *last* fallback
+    let avatarSrc = avatarUrl ||
+      getAvatarDataURL() ||
+      'https://ui-avatars.com/api/?name=' + encodeURIComponent(profile.displayName || 'User') + '&background=0078D4&color=fff&size=128';
+
+    profileDiv.innerHTML = `
+      <div id="avatar-wrap">
+        <img id="avatar" src="${avatarSrc}" alt="User photo" aria-label="User avatar" />
+        <button id="avatar-upload" aria-label="Upload avatar" title="Upload custom photo" tabindex="0" type="button">🖼️</button>
+      </div>
+      <div class="field"><span class="label">Display Name:</span><span class="value">${profile.displayName || ''}</span></div>
+      <div class="field"><span class="label">Email:</span><span class="value">${profile.mail || profile.userPrincipalName || ''}</span></div>
+      <div class="field"><span class="label">Job Title:</span><span class="value">${profile.jobTitle || ''}</span></div>
+      <div class="field"><span class="label">Department:</span><span class="value">${dept}</span></div>
+      <div class="field"><span class="label">User Principal Name:</span><span class="value">${profile.userPrincipalName || ''}</span></div>
+    `;
+    // Avatar upload logic
+    document.getElementById('avatar-upload').onclick = () => fileInput.click();
+    enableAvatarUpload();
+  }
+
+  // On page load, show login if not authenticated
+  window.addEventListener("DOMContentLoaded", () => {
+    const account = msalInstance.getAllAccounts()[0];
+    if (account) {
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-flex";
+      setStatus(`Logged in as ${account.username}`, "success");
+      fetchProfile(account);
+    } else {
+      loginBtn.style.display = "inline-flex";
+      logoutBtn.style.display = "none";
+      setStatus("Please log in to view your profile.", "info");
+      profileDiv.style.display = "none";
+    }
+  });
+</script>
+</body>
+</html>
