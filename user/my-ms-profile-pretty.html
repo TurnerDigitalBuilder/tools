@@ -7,118 +7,266 @@
 <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
 <style>
   :root {
-    --primary: #0078d4;
-    --primary-hover: #005fa3;
+    --accent: #0078d4;
+    --accent-hover: #005fa3;
     --danger: #e81123;
+    --danger-dark: #a80000;
+    --success: #107c10;
+    --text: #222;
+    --muted: #646a7a;
+    --label: #48505e;
     --bg: #f4f6fa;
-    --card-bg: #fff;
-    --card-shadow: 0 4px 24px rgba(0,0,0,0.09);
-    --radius-lg: 12px;
-    --radius-md: 8px;
-    --font-main: system-ui, Arial, sans-serif;
-    --text-dark: #222;
-    --text-muted: #6b7280;
-    --label: #424b57;
-    --spinner: #0078d4;
+    --card-bg: rgba(255,255,255,0.85);
+    --blur-bg: blur(12px);
+    --shadow: 0 8px 28px rgba(0,0,0,0.09), 0 2px 4px rgba(0,120,212,0.08);
+    --radius-lg: 20px;
+    --radius-md: 10px;
+    --radius-sm: 6px;
+    --font-main: 'Segoe UI', system-ui, Arial, sans-serif;
+    --border: 1.5px solid #e1e7f0;
+    --transition: 0.23s cubic-bezier(.66,.11,.35,.94);
+    --focus: 0 0 0 3px #90cdf4;
+    --avatar-size: 80px;
+    --gradient: linear-gradient(120deg, #dbeafe 0%, #f4f6fa 100%);
+    --dark-bg: #101820;
+    --dark-card: rgba(25,32,50,0.85);
+    --dark-shadow: 0 8px 28px rgba(0,30,90,0.20), 0 2px 4px rgba(0,120,212,0.10);
+    --dark-text: #fff;
+    --dark-label: #b2d1f7;
+    --dark-muted: #c3cbe1;
+    --avatar-ring: 3px solid #0078d4;
+  }
+  [data-theme="dark"] {
+    --bg: var(--dark-bg);
+    --card-bg: var(--dark-card);
+    --text: var(--dark-text);
+    --label: var(--dark-label);
+    --muted: var(--dark-muted);
+    --shadow: var(--dark-shadow);
+    --border: 1.5px solid #212d45;
+    --avatar-ring: 3px solid #3ca6f6;
   }
   html, body {
-    margin: 0; padding: 0; box-sizing: border-box; background: var(--bg);
-    font-family: var(--font-main); color: var(--text-dark); min-height: 100vh;
+    background: var(--gradient);
+    min-height: 100vh;
+    margin: 0; padding: 0;
+    font-family: var(--font-main);
+    color: var(--text);
+    transition: background 0.4s;
   }
-  body { display: flex; flex-direction: column; align-items: center; padding: 40px 10px; }
-  h1 { color: var(--primary); margin-bottom: 36px; letter-spacing: -1px; }
+  body {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 48px 10px 32px 10px;
+    min-height: 100vh;
+    transition: background 0.4s;
+  }
+  h1 {
+    color: var(--accent);
+    letter-spacing: -1px;
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 38px;
+    text-align: center;
+    text-shadow: 0 2px 10px rgba(0,120,212,0.06);
+  }
+  .theme-toggle {
+    position: absolute; right: 22px; top: 24px;
+    background: none; border: none;
+    cursor: pointer; font-size: 1.3rem;
+    color: var(--accent); transition: color .16s;
+    padding: 6px;
+    border-radius: var(--radius-sm);
+    outline: none;
+  }
+  .theme-toggle:focus-visible { box-shadow: var(--focus); }
+  #actions {
+    margin-bottom: 20px;
+    display: flex; gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
   .btn {
+    position: relative;
     display: inline-flex; align-items: center; gap: 8px;
-    padding: 12px 32px;
+    padding: 13px 36px;
     border: none;
     border-radius: var(--radius-md);
-    background: var(--primary);
+    background: var(--accent);
     color: #fff;
-    font-size: 1rem;
+    font-size: 1.04rem;
     font-weight: 600;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.10);
     cursor: pointer;
-    transition: background 0.18s, box-shadow 0.16s, transform 0.12s;
+    transition: background var(--transition), box-shadow var(--transition), transform 0.12s;
+    margin-bottom: 16px;
+    overflow: hidden;
     outline: none;
-    margin: 0 8px 24px 0;
+    isolation: isolate;
   }
-  .btn[disabled] {
-    opacity: 0.6; pointer-events: none;
+  .btn[disabled] { opacity: 0.6; pointer-events: none; }
+  .btn:focus-visible { box-shadow: var(--focus); }
+  .btn::after {
+    content: '';
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 0; height: 0;
+    background: rgba(255,255,255,0.19);
+    border-radius: 50%;
+    transform: translate(-50%,-50%);
+    transition: width .35s cubic-bezier(.35,1.28,.51,1), height .35s cubic-bezier(.35,1.28,.51,1);
+    z-index: 0;
+  }
+  .btn:active::after {
+    width: 160px; height: 160px;
+    transition: 0s;
   }
   .btn:hover, .btn:focus-visible {
-    background: var(--primary-hover);
-    box-shadow: 0 2px 10px rgba(0,120,212,0.09), 0 1.5px 6px rgba(0,0,0,0.11);
-    transform: translateY(-2px) scale(1.03);
+    background: linear-gradient(93deg, var(--accent) 50%, #59abf4 100%);
+    box-shadow: 0 3px 14px rgba(0,120,212,0.17);
+    transform: translateY(-2px) scale(1.035);
   }
-  .btn.logout {
-    background: var(--danger);
-  }
+  .btn.logout { background: var(--danger); }
   .btn.logout:hover, .btn.logout:focus-visible {
-    background: #a80000;
+    background: linear-gradient(93deg, var(--danger) 60%, #f28497 100%);
   }
   #profile {
-    max-width: 420px;
+    max-width: 430px;
     width: 100%;
     background: var(--card-bg);
-    padding: 32px 24px;
+    padding: 34px 30px 30px 30px;
     border-radius: var(--radius-lg);
-    box-shadow: var(--card-shadow);
-    margin-top: 10px;
+    box-shadow: var(--shadow);
+    margin-top: 8px;
+    border: var(--border);
     display: none;
-    transition: box-shadow 0.15s;
     position: relative;
-    min-height: 190px;
+    min-height: 210px;
+    transition: box-shadow var(--transition), background 0.4s;
+    backdrop-filter: var(--blur-bg);
+    will-change: box-shadow;
+    overflow: hidden;
+  }
+  #profile:hover {
+    box-shadow: 0 18px 44px 0 rgba(0,120,212,0.15), 0 4px 16px rgba(0,0,0,0.12);
+    transition: box-shadow 0.23s cubic-bezier(.53,.24,.36,.99);
+  }
+  #avatar-wrap {
+    display: flex; justify-content: center; align-items: center; margin-bottom: 24px; position: relative;
   }
   #avatar {
-    width: 72px; height: 72px; object-fit: cover;
+    width: var(--avatar-size); height: var(--avatar-size); object-fit: cover;
     border-radius: 50%; background: #dde5f2;
-    display: block; margin: 0 auto 18px;
-    box-shadow: 0 0.5px 4px rgba(0,120,212,0.07);
-    border: 2.5px solid #fff;
+    display: block; box-shadow: 0 1.5px 10px rgba(0,120,212,0.07);
+    border: var(--avatar-ring); transition: box-shadow 0.2s, border 0.2s;
+    cursor: pointer;
+    transition: filter .21s;
   }
-  .field { margin-bottom: 18px; }
-  .label { font-weight: 600; color: var(--label); font-size: 1rem; }
-  .value { margin-left: 8px; color: var(--text-dark); font-size: 1rem; }
+  #avatar:hover, #avatar:focus-visible { filter: brightness(1.12) contrast(1.08) drop-shadow(0 0 8px #cde8fd); }
+  #avatar-upload {
+    position: absolute; bottom: 2px; right: 18px;
+    background: rgba(0,120,212,0.94);
+    color: #fff; border: none; border-radius: 50%;
+    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; box-shadow: 0 1px 5px rgba(0,120,212,0.17);
+    cursor: pointer; z-index: 2;
+    transition: background .15s;
+    opacity: 0.85;
+  }
+  #avatar-upload:hover { background: #4fa8f3; }
+  #avatar-upload:focus-visible { box-shadow: var(--focus);}
+  input[type="file"] { display: none; }
+  .field { margin-bottom: 20px; }
+  .label { font-weight: 600; color: var(--label); font-size: 1.02rem; letter-spacing: .01em;}
+  .value { margin-left: 8px; color: var(--text); font-size: 1.03rem; }
   #status {
-    margin-bottom: 14px; font-size: 1rem;
-    padding: 8px 0; border-radius: var(--radius-md); min-height: 28px;
+    margin-bottom: 15px; font-size: 1.08rem;
+    padding: 10px 14px 10px 40px; border-radius: var(--radius-md); min-height: 34px;
+    display: flex; align-items: center; gap: 10px;
+    box-sizing: border-box;
+    background: #e3f0fc;
+    color: var(--accent);
+    position: relative;
     transition: color 0.2s, background 0.2s;
+    font-weight: 500;
+    min-width: 240px;
   }
-  #status.info { color: var(--primary); background: #e3f0fc; }
-  #status.success { color: #107c10; background: #ecf8ef; }
-  #status.error { color: #a80000; background: #fbe8ea; }
-  #status.loading { color: var(--text-muted); background: #f3f3f3; }
-  /* Spinner */
+  #status .icon { position: absolute; left: 12px; font-size: 1.28em; }
+  #status.info    { color: var(--accent); background: #e3f0fc; }
+  #status.success { color: var(--success); background: #ecf8ef; }
+  #status.error   { color: var(--danger-dark); background: #fbe8ea; }
+  #status.loading { color: var(--muted); background: #f3f6fa; }
+  .checkmark {
+    width: 24px; height: 24px;
+    display: inline-block; vertical-align: middle;
+    margin-right: 2px;
+    stroke: var(--success);
+    stroke-width: 2.7; stroke-linecap: round; stroke-linejoin: round;
+    fill: none;
+    animation: checkmark .48s cubic-bezier(.6,2.2,.4,1.11) 1;
+  }
+  @keyframes checkmark {
+    0% { stroke-dashoffset: 16; opacity: 0; }
+    50% { opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 1; }
+  }
   .spinner {
-    width: 26px; height: 26px; border: 3px solid #dde5f2;
-    border-top: 3px solid var(--spinner);
-    border-radius: 50%; animation: spin 0.9s linear infinite;
-    margin: 0 auto 18px;
+    width: 28px; height: 28px; border: 4px solid #dde5f2;
+    border-top: 4px solid var(--accent);
+    border-radius: 50%; animation: spin 0.88s linear infinite;
+    margin: 0 auto 22px auto; display: block;
   }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  /* Responsive */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* Responsive tweaks */
   @media (max-width: 600px) {
-    #profile { padding: 20px 8px; }
-    .btn { width: 100%; margin: 0 0 14px 0; }
-    h1 { font-size: 1.5rem; }
+    #profile { padding: 20px 6px; }
+    h1 { font-size: 1.22rem; }
+    .btn { width: 100%; min-width: 0; }
+    #actions { gap: 6px;}
+    #status { font-size: 1rem; min-width: 0;}
+    #avatar { width: 60px; height: 60px; }
+  }
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition: none !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
   }
 </style>
 </head>
 <body>
-
+<button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle theme" tabindex="0">
+  <span id="themeIcon">🌙</span>
+</button>
 <h1>My Microsoft 365 Profile</h1>
 
-<div id="actions" style="margin-bottom:18px;">
+<div id="actions">
   <button id="loginBtn" class="btn">Login</button>
   <button id="logoutBtn" class="btn logout" style="display:none;">Logout</button>
 </div>
 
 <div id="status" aria-live="polite" class="info"></div>
 <div id="profile" role="region" aria-label="Profile Info"></div>
+<input type="file" id="fileInput" accept="image/*" />
 
 <script>
+  // THEME LOGIC
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  let theme = localStorage.getItem("theme") || (prefersDark ? "dark" : "light");
+  setTheme(theme);
+
+  document.getElementById('themeToggle').onclick = function() {
+    theme = (theme === "dark" ? "light" : "dark");
+    setTheme(theme);
+    localStorage.setItem("theme", theme);
+  };
+  function setTheme(mode) {
+    document.documentElement.setAttribute('data-theme', mode);
+    document.getElementById('themeIcon').textContent = (mode === "dark") ? "☀️" : "🌙";
+  }
+
+  // MSAL & GRAPH LOGIC
   const msalConfig = {
     auth: {
       clientId: '777f7fc2-a83e-43fe-b79e-209fa7b089c9',
@@ -127,14 +275,9 @@
     },
     cache: { cacheLocation: "localStorage", storeAuthStateInCookie: false }
   };
-
-  const loginRequest = {
-    scopes: ['openid', 'profile', 'User.Read', 'offline_access']
-  };
-
+  const loginRequest = { scopes: ['openid', 'profile', 'User.Read', 'offline_access'] };
   const graphProfileEndpoint = "https://graph.microsoft.com/v1.0/me?$select=displayName,mail,department,onPremisesDepartment,jobTitle,userPrincipalName";
   const graphPhotoEndpoint = "https://graph.microsoft.com/v1.0/me/photo/$value";
-
   const msalInstance = new msal.PublicClientApplication(msalConfig);
 
   // UI Elements
@@ -142,14 +285,19 @@
   const logoutBtn = document.getElementById('logoutBtn');
   const statusDiv = document.getElementById('status');
   const profileDiv = document.getElementById('profile');
-  const actionsDiv = document.getElementById('actions');
+  const fileInput = document.getElementById('fileInput');
 
   loginBtn.addEventListener('click', () => msalInstance.loginRedirect(loginRequest));
   logoutBtn.addEventListener('click', () => msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.href }));
 
-  // Status helper
+  // Status helper with icon
   function setStatus(msg, type = "info") {
-    statusDiv.textContent = msg;
+    let icon = "";
+    if (type === "info") icon = `<span class="icon">ℹ️</span>`;
+    if (type === "success") icon = `<svg class="checkmark" viewBox="0 0 18 18"><path d="M4 9.5l4.5 4L14 5.5" stroke-dasharray="16" stroke-dashoffset="0"/></svg>`;
+    if (type === "error") icon = `<span class="icon">⚠️</span>`;
+    if (type === "loading") icon = `<span class="icon">⏳</span>`;
+    statusDiv.innerHTML = `${icon} <span>${msg}</span>`;
     statusDiv.className = type;
   }
 
@@ -170,78 +318,10 @@
     }
   }
 
-  async function fetchProfile(account) {
-    setStatus("Loading your profile...", "loading");
-    profileDiv.innerHTML = `<div class="spinner" aria-label="Loading..."></div>`;
-    profileDiv.style.display = "block";
-    try {
-      const tokenResponse = await msalInstance.acquireTokenSilent({
-        account: account,
-        scopes: loginRequest.scopes
-      });
-      const accessToken = tokenResponse.accessToken;
+  // AVATAR fallback logic: store base64 in sessionStorage for session use
+  function saveAvatarDataURL(dataUrl) { sessionStorage.setItem('profileAvatar', dataUrl); }
+  function getAvatarDataURL() { return sessionStorage.getItem('profileAvatar'); }
 
-      // Get profile info
-      const profileRes = await fetch(graphProfileEndpoint, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-      if (!profileRes.ok) throw new Error("Graph API error: " + profileRes.status);
-
-      const profile = await profileRes.json();
-
-      // Try to fetch photo (optional)
-      let avatarDataUrl = null;
-      try {
-        const photoRes = await fetch(graphPhotoEndpoint, {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        });
-        if (photoRes.ok) {
-          const blob = await photoRes.blob();
-          avatarDataUrl = URL.createObjectURL(blob);
-        }
-      } catch (err) {
-        // No photo: fallback will be shown
-      }
-
-      renderProfile(profile, avatarDataUrl);
-      setStatus("Profile loaded.", "success");
-    } catch (error) {
-      console.error(error);
-      setStatus("Error fetching profile. Please try again.", "error");
-      if (error instanceof msal.InteractionRequiredAuthError || error.errorCode === 'interaction_required') {
-        msalInstance.acquireTokenRedirect(loginRequest);
-      }
-    }
-  }
-
-  function renderProfile(profile, avatarUrl) {
-    profileDiv.style.display = "block";
-    const dept = profile.department || profile.onPremisesDepartment || '(not set)';
-    profileDiv.innerHTML = `
-      <img id="avatar" src="${avatarUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(profile.displayName || 'User') + '&background=0078D4&color=fff&size=128'}" alt="User photo" />
-      <div class="field"><span class="label">Display Name:</span><span class="value">${profile.displayName || ''}</span></div>
-      <div class="field"><span class="label">Email:</span><span class="value">${profile.mail || profile.userPrincipalName || ''}</span></div>
-      <div class="field"><span class="label">Job Title:</span><span class="value">${profile.jobTitle || ''}</span></div>
-      <div class="field"><span class="label">Department:</span><span class="value">${dept}</span></div>
-      <div class="field"><span class="label">User Principal Name:</span><span class="value">${profile.userPrincipalName || ''}</span></div>
-    `;
-  }
-
-  // On page load, show login if not authenticated
-  window.addEventListener("DOMContentLoaded", () => {
-    const account = msalInstance.getAllAccounts()[0];
-    if (account) {
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-flex";
-      setStatus(`Logged in as ${account.username}`, "success");
-      fetchProfile(account);
-    } else {
-      loginBtn.style.display = "inline-flex";
-      logoutBtn.style.display = "none";
-      setStatus("Please log in to view your profile.", "info");
-      profileDiv.style.display = "none";
-    }
-  });
-</script>
-</body>
-</html>
+  // Allow user to upload avatar as fallback
+  function avatarUploadHandler(e) {
+    if (e.target.files && e
