@@ -1,90 +1,247 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Microsoft 365 Profile</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
-  <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Microsoft 365 Profile</title>
+<script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+<style>
+  :root {
+    --primary: #0078d4;
+    --primary-hover: #005fa3;
+    --danger: #e81123;
+    --bg: #f4f6fa;
+    --card-bg: #fff;
+    --card-shadow: 0 4px 24px rgba(0,0,0,0.09);
+    --radius-lg: 12px;
+    --radius-md: 8px;
+    --font-main: system-ui, Arial, sans-serif;
+    --text-dark: #222;
+    --text-muted: #6b7280;
+    --label: #424b57;
+    --spinner: #0078d4;
+  }
+  html, body {
+    margin: 0; padding: 0; box-sizing: border-box; background: var(--bg);
+    font-family: var(--font-main); color: var(--text-dark); min-height: 100vh;
+  }
+  body { display: flex; flex-direction: column; align-items: center; padding: 40px 10px; }
+  h1 { color: var(--primary); margin-bottom: 36px; letter-spacing: -1px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 32px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--primary);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: background 0.18s, box-shadow 0.16s, transform 0.12s;
+    outline: none;
+    margin: 0 8px 24px 0;
+  }
+  .btn[disabled] {
+    opacity: 0.6; pointer-events: none;
+  }
+  .btn:hover, .btn:focus-visible {
+    background: var(--primary-hover);
+    box-shadow: 0 2px 10px rgba(0,120,212,0.09), 0 1.5px 6px rgba(0,0,0,0.11);
+    transform: translateY(-2px) scale(1.03);
+  }
+  .btn.logout {
+    background: var(--danger);
+  }
+  .btn.logout:hover, .btn.logout:focus-visible {
+    background: #a80000;
+  }
+  #profile {
+    max-width: 420px;
+    width: 100%;
+    background: var(--card-bg);
+    padding: 32px 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    margin-top: 10px;
+    display: none;
+    transition: box-shadow 0.15s;
+    position: relative;
+    min-height: 190px;
+  }
+  #avatar {
+    width: 72px; height: 72px; object-fit: cover;
+    border-radius: 50%; background: #dde5f2;
+    display: block; margin: 0 auto 18px;
+    box-shadow: 0 0.5px 4px rgba(0,120,212,0.07);
+    border: 2.5px solid #fff;
+  }
+  .field { margin-bottom: 18px; }
+  .label { font-weight: 600; color: var(--label); font-size: 1rem; }
+  .value { margin-left: 8px; color: var(--text-dark); font-size: 1rem; }
+  #status {
+    margin-bottom: 14px; font-size: 1rem;
+    padding: 8px 0; border-radius: var(--radius-md); min-height: 28px;
+    transition: color 0.2s, background 0.2s;
+  }
+  #status.info { color: var(--primary); background: #e3f0fc; }
+  #status.success { color: #107c10; background: #ecf8ef; }
+  #status.error { color: #a80000; background: #fbe8ea; }
+  #status.loading { color: var(--text-muted); background: #f3f3f3; }
+  /* Spinner */
+  .spinner {
+    width: 26px; height: 26px; border: 3px solid #dde5f2;
+    border-top: 3px solid var(--spinner);
+    border-radius: 50%; animation: spin 0.9s linear infinite;
+    margin: 0 auto 18px;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  /* Responsive */
+  @media (max-width: 600px) {
+    #profile { padding: 20px 8px; }
+    .btn { width: 100%; margin: 0 0 14px 0; }
+    h1 { font-size: 1.5rem; }
+  }
+</style>
 </head>
-<body class="bg-gray-100 font-sans">
-  <div class="max-w-xl mx-auto p-6">
-    <h1 class="text-2xl font-bold text-blue-600 mb-6">My Microsoft 365 Profile</h1>
-    <div class="flex space-x-2 mb-4">
-      <button id="loginBtn" class="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600 transition">Login</button>
-      <button id="logoutBtn" class="hidden bg-gray-500 text-white px-4 py-2 rounded shadow hover:bg-gray-600 transition">Logout</button>
-    </div>
+<body>
 
-    <div id="status" class="text-gray-500 italic mb-4"></div>
+<h1>My Microsoft 365 Profile</h1>
 
-    <div id="profile" class="hidden bg-white rounded-lg shadow p-4">
-      <dl class="grid grid-cols-1 gap-2">
-        <div class="flex"><dt class="font-semibold">Display Name:</dt><dd class="ml-2" id="displayName"></dd></div>
-        <div class="flex"><dt class="font-semibold">Email:</dt><dd class="ml-2" id="email"></dd></div>
-        <div class="flex"><dt class="font-semibold">Job Title:</dt><dd class="ml-2" id="jobTitle"></dd></div>
-        <div class="flex"><dt class="font-semibold">Department:</dt><dd class="ml-2" id="department"></dd></div>
-        <div class="flex"><dt class="font-semibold">User Principal Name:</dt><dd class="ml-2" id="userPrincipalName"></dd></div>
-      </dl>
-    </div>
-  </div>
+<div id="actions" style="margin-bottom:18px;">
+  <button id="loginBtn" class="btn">Login</button>
+  <button id="logoutBtn" class="btn logout" style="display:none;">Logout</button>
+</div>
 
-  <script>
-    const msalConfig = {
-      auth: {
-        clientId: '777f7fc2-a83e-43fe-b79e-209fa7b089c9',
-        authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
-        redirectUri: window.location.origin
-      }
-    };
+<div id="status" aria-live="polite" class="info"></div>
+<div id="profile" role="region" aria-label="Profile Info"></div>
 
-    const loginRequest = { scopes: ['openid', 'profile', 'User.Read', 'offline_access'] };
-    const graphEndpoint = 'https://graph.microsoft.com/v1.0/me?$select=displayName,mail,department,onPremisesDepartment,jobTitle,userPrincipalName';
+<script>
+  const msalConfig = {
+    auth: {
+      clientId: '777f7fc2-a83e-43fe-b79e-209fa7b089c9',
+      authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
+      redirectUri: window.location.href
+    },
+    cache: { cacheLocation: "localStorage", storeAuthStateInCookie: false }
+  };
 
-    const msalInstance = new msal.PublicClientApplication(msalConfig);
+  const loginRequest = {
+    scopes: ['openid', 'profile', 'User.Read', 'offline_access']
+  };
 
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const statusDiv = document.getElementById('status');
-    const profileDiv = document.getElementById('profile');
+  const graphProfileEndpoint = "https://graph.microsoft.com/v1.0/me?$select=displayName,mail,department,onPremisesDepartment,jobTitle,userPrincipalName";
+  const graphPhotoEndpoint = "https://graph.microsoft.com/v1.0/me/photo/$value";
 
-    loginBtn.onclick = () => msalInstance.loginRedirect(loginRequest);
-    logoutBtn.onclick = () => msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.origin });
+  const msalInstance = new msal.PublicClientApplication(msalConfig);
 
-    msalInstance.handleRedirectPromise()
-      .then(response => {
-        const account = response?.account || msalInstance.getAllAccounts()[0];
-        if (account) {
-          loginBtn.classList.add('hidden');
-          logoutBtn.classList.remove('hidden');
-          statusDiv.textContent = `Logged in as ${account.username}`;
-          fetchProfile(account);
-        }
-      })
-      .catch(err => statusDiv.textContent = 'Authentication error.');
+  // UI Elements
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const statusDiv = document.getElementById('status');
+  const profileDiv = document.getElementById('profile');
+  const actionsDiv = document.getElementById('actions');
 
-    async function fetchProfile(account) {
-      statusDiv.textContent = 'Fetching profile...';
+  loginBtn.addEventListener('click', () => msalInstance.loginRedirect(loginRequest));
+  logoutBtn.addEventListener('click', () => msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.href }));
+
+  // Status helper
+  function setStatus(msg, type = "info") {
+    statusDiv.textContent = msg;
+    statusDiv.className = type;
+  }
+
+  msalInstance.handleRedirectPromise()
+    .then(handleResponse)
+    .catch(err => {
+      console.error(err);
+      setStatus("Authentication error.", "error");
+    });
+
+  function handleResponse(response) {
+    let account = response?.account || msalInstance.getAllAccounts()[0];
+    if (account) {
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-flex";
+      setStatus(`Logged in as ${account.username}`, "success");
+      fetchProfile(account);
+    }
+  }
+
+  async function fetchProfile(account) {
+    setStatus("Loading your profile...", "loading");
+    profileDiv.innerHTML = `<div class="spinner" aria-label="Loading..."></div>`;
+    profileDiv.style.display = "block";
+    try {
+      const tokenResponse = await msalInstance.acquireTokenSilent({
+        account: account,
+        scopes: loginRequest.scopes
+      });
+      const accessToken = tokenResponse.accessToken;
+
+      // Get profile info
+      const profileRes = await fetch(graphProfileEndpoint, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (!profileRes.ok) throw new Error("Graph API error: " + profileRes.status);
+
+      const profile = await profileRes.json();
+
+      // Try to fetch photo (optional)
+      let avatarDataUrl = null;
       try {
-        const tokenResponse = await msalInstance.acquireTokenSilent({ scopes: loginRequest.scopes, account });
-        const res = await fetch(graphEndpoint, {
-          headers: { Authorization: `Bearer ${tokenResponse.accessToken}` }
+        const photoRes = await fetch(graphPhotoEndpoint, {
+          headers: { Authorization: `Bearer ${accessToken}` }
         });
+        if (photoRes.ok) {
+          const blob = await photoRes.blob();
+          avatarDataUrl = URL.createObjectURL(blob);
+        }
+      } catch (err) {
+        // No photo: fallback will be shown
+      }
 
-        if (!res.ok) throw new Error('Failed to fetch profile');
-
-        const data = await res.json();
-        document.getElementById('displayName').textContent = data.displayName;
-        document.getElementById('email').textContent = data.mail || data.userPrincipalName;
-        document.getElementById('jobTitle').textContent = data.jobTitle || '(not set)';
-        document.getElementById('department').textContent = data.department || data.onPremisesDepartment || '(not set)';
-        document.getElementById('userPrincipalName').textContent = data.userPrincipalName;
-
-        profileDiv.classList.remove('hidden');
-        statusDiv.textContent = '';
-      } catch (e) {
-        statusDiv.textContent = 'Error loading profile.';
+      renderProfile(profile, avatarDataUrl);
+      setStatus("Profile loaded.", "success");
+    } catch (error) {
+      console.error(error);
+      setStatus("Error fetching profile. Please try again.", "error");
+      if (error instanceof msal.InteractionRequiredAuthError || error.errorCode === 'interaction_required') {
+        msalInstance.acquireTokenRedirect(loginRequest);
       }
     }
-  </script>
+  }
+
+  function renderProfile(profile, avatarUrl) {
+    profileDiv.style.display = "block";
+    const dept = profile.department || profile.onPremisesDepartment || '(not set)';
+    profileDiv.innerHTML = `
+      <img id="avatar" src="${avatarUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(profile.displayName || 'User') + '&background=0078D4&color=fff&size=128'}" alt="User photo" />
+      <div class="field"><span class="label">Display Name:</span><span class="value">${profile.displayName || ''}</span></div>
+      <div class="field"><span class="label">Email:</span><span class="value">${profile.mail || profile.userPrincipalName || ''}</span></div>
+      <div class="field"><span class="label">Job Title:</span><span class="value">${profile.jobTitle || ''}</span></div>
+      <div class="field"><span class="label">Department:</span><span class="value">${dept}</span></div>
+      <div class="field"><span class="label">User Principal Name:</span><span class="value">${profile.userPrincipalName || ''}</span></div>
+    `;
+  }
+
+  // On page load, show login if not authenticated
+  window.addEventListener("DOMContentLoaded", () => {
+    const account = msalInstance.getAllAccounts()[0];
+    if (account) {
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-flex";
+      setStatus(`Logged in as ${account.username}`, "success");
+      fetchProfile(account);
+    } else {
+      loginBtn.style.display = "inline-flex";
+      logoutBtn.style.display = "none";
+      setStatus("Please log in to view your profile.", "info");
+      profileDiv.style.display = "none";
+    }
+  });
+</script>
 </body>
 </html>
