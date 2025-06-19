@@ -6,109 +6,237 @@
 <title>My Microsoft 365 Profile</title>
 <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
 <style>
-  /* Reset & base */
-  body {
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background: #e3f2fd;
-    color: #202124;
+  * {
     margin: 0;
-    padding: 2rem 1rem;
-    display: flex;
-    justify-content: center;
-    min-height: 100vh;
-  }
-
-  .container {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-    max-width: 420px;
-    width: 100%;
-    padding: 2.5rem 2rem 3rem;
+    padding: 0;
     box-sizing: border-box;
   }
 
-  h1 {
-    margin-bottom: 1.5rem;
-    font-weight: 700;
-    font-size: 1.75rem;
-    color: #0d47a1;
-    text-align: center;
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
   }
 
-  #status {
-    font-style: italic;
-    color: #666;
+  .container {
+    width: 100%;
+    max-width: 500px;
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  h1 {
+    color: white;
     text-align: center;
-    margin-bottom: 1.5rem;
-    min-height: 1.5em;
+    margin-bottom: 30px;
+    font-size: 2.5rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .auth-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+
+  .auth-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
   }
 
   button {
-    display: block;
-    width: 100%;
-    background-color: #0d47a1;
+    background: #0078d4;
     color: white;
     border: none;
-    padding: 12px;
-    font-size: 1rem;
-    border-radius: 8px;
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 50px;
     cursor: pointer;
-    transition: background-color 0.25s ease;
-    margin-bottom: 1rem;
-    user-select: none;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 10px 5px;
+    position: relative;
+    overflow: hidden;
   }
 
   button:hover {
-    background-color: #083972;
+    background: #106ebe;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 120, 212, 0.4);
   }
 
-  button:focus {
-    outline: 3px solid #64b5f6;
-    outline-offset: 2px;
+  button:active {
+    transform: translateY(0);
+  }
+
+  button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  button:active::after {
+    width: 300px;
+    height: 300px;
   }
 
   #logoutBtn {
-    background-color: #b71c1c;
+    background: #e74c3c;
   }
 
   #logoutBtn:hover {
-    background-color: #7f1212;
+    background: #c0392b;
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+  }
+
+  #status {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+    min-height: 20px;
+    transition: all 0.3s ease;
   }
 
   #profile {
-    display: none;
-    border-top: 1px solid #eee;
-    padding-top: 1.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    animation: slideIn 0.5s ease-out;
   }
 
-  .profile-field {
-    margin-bottom: 1.1rem;
-  }
-
-  .profile-label {
-    font-weight: 600;
-    color: #555;
-    display: block;
-    margin-bottom: 0.3rem;
-    font-size: 0.9rem;
-    letter-spacing: 0.02em;
-  }
-
-  .profile-value {
-    font-size: 1.1rem;
-    color: #212121;
-    word-wrap: break-word;
-  }
-
-  /* Responsive */
-  @media (max-width: 480px) {
-    body {
-      padding: 1rem;
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
     }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-    .container {
-      padding: 1.5rem 1rem 2rem;
+  .profile-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+  }
+
+  .field {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+  }
+
+  .field:hover {
+    background: white;
+    border-color: #e9ecef;
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .value {
+    color: #212529;
+    font-size: 16px;
+    word-break: break-word;
+  }
+
+  .loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #0078d4;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+    vertical-align: middle;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .microsoft-logo {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+
+  @media (max-width: 600px) {
+    h1 {
+      font-size: 2rem;
+    }
+    
+    .auth-card, #profile {
+      padding: 25px;
+    }
+    
+    button {
+      padding: 12px 24px;
+      font-size: 14px;
     }
   }
 </style>
@@ -116,20 +244,29 @@
 <body>
 
 <div class="container">
-  <h1>My Microsoft 365 Profile</h1>
+  <h1>
+    <svg class="microsoft-logo" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="11" height="11" fill="#F25022"/>
+      <rect x="12" width="11" height="11" fill="#7FBA00"/>
+      <rect y="12" width="11" height="11" fill="#00A4EF"/>
+      <rect x="12" y="12" width="11" height="11" fill="#FFB900"/>
+    </svg>
+    Microsoft 365 Profile
+  </h1>
 
-  <button id="loginBtn">Login</button>
-  <button id="logoutBtn" style="display:none;">Logout</button>
+  <div class="auth-card">
+    <button id="loginBtn">Sign In</button>
+    <button id="logoutBtn" style="display:none;">Sign Out</button>
+    <div id="status"></div>
+  </div>
 
-  <div id="status"></div>
-
-  <div id="profile" aria-live="polite" aria-atomic="true" role="region"></div>
+  <div id="profile" style="display:none;"></div>
 </div>
 
 <script>
   const msalConfig = {
     auth: {
-      clientId: '4a1add08-6985-47df-bf49-ff14a8f25cdd',
+      clientId: '777f7fc2-a83e-43fe-b79e-209fa7b089c9',
       authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
       redirectUri: window.location.href
     },
@@ -171,14 +308,14 @@
     let account = response?.account || msalInstance.getAllAccounts()[0];
     if (account) {
       loginBtn.style.display = "none";
-      logoutBtn.style.display = "block";
-      statusDiv.textContent = `Logged in as ${account.username}`;
+      logoutBtn.style.display = "inline-block";
+      statusDiv.textContent = `Signed in as ${account.username}`;
       fetchProfile(account);
     }
   }
 
   async function fetchProfile(account) {
-    statusDiv.textContent = "Fetching profile info...";
+    statusDiv.innerHTML = 'Fetching profile info<span class="loading"></span>';
     profileDiv.style.display = "none";
     try {
       const tokenResponse = await msalInstance.acquireTokenSilent({
@@ -198,7 +335,7 @@
 
       const profile = await response.json();
       renderProfile(profile);
-      statusDiv.textContent = "Profile loaded";
+      statusDiv.textContent = "Profile loaded successfully";
     } catch (error) {
       console.error(error);
       statusDiv.textContent = "Error fetching profile, retrying login...";
@@ -212,27 +349,34 @@
 
   function renderProfile(profile) {
     profileDiv.style.display = "block";
-    const dept = profile.department || profile.onPremisesDepartment || '(not set)';
+    const dept = profile.department || profile.onPremisesDepartment || 'Not specified';
+    const initials = profile.displayName ? 
+      profile.displayName.split(' ').map(n => n[0]).join('').slice(0, 2) : 
+      '?';
+    
     profileDiv.innerHTML = `
-      <div class="profile-field">
-        <span class="profile-label">Display Name:</span>
-        <span class="profile-value">${profile.displayName || ''}</span>
+      <div class="profile-header">
+        <div class="avatar">${initials}</div>
       </div>
-      <div class="profile-field">
-        <span class="profile-label">Email:</span>
-        <span class="profile-value">${profile.mail || profile.userPrincipalName || ''}</span>
+      <div class="field">
+        <span class="label">Display Name</span>
+        <span class="value">${profile.displayName || 'Not available'}</span>
       </div>
-      <div class="profile-field">
-        <span class="profile-label">Job Title:</span>
-        <span class="profile-value">${profile.jobTitle || ''}</span>
+      <div class="field">
+        <span class="label">Email</span>
+        <span class="value">${profile.mail || profile.userPrincipalName || 'Not available'}</span>
       </div>
-      <div class="profile-field">
-        <span class="profile-label">Department:</span>
-        <span class="profile-value">${dept}</span>
+      <div class="field">
+        <span class="label">Job Title</span>
+        <span class="value">${profile.jobTitle || 'Not specified'}</span>
       </div>
-      <div class="profile-field">
-        <span class="profile-label">User Principal Name:</span>
-        <span class="profile-value">${profile.userPrincipalName || ''}</span>
+      <div class="field">
+        <span class="label">Department</span>
+        <span class="value">${dept}</span>
+      </div>
+      <div class="field">
+        <span class="label">User Principal Name</span>
+        <span class="value">${profile.userPrincipalName || 'Not available'}</span>
       </div>
     `;
   }
