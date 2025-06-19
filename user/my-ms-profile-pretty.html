@@ -6,126 +6,134 @@
 <title>My Microsoft 365 Profile</title>
 <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
 <style>
+  /* Design system variables */
   :root {
-    --color-primary: #0078d4;
-    --color-text-dark: #202020;
-    --color-text-muted: #666666;
-    --color-bg: #f0f2f5;
-    --color-white: #ffffff;
-    --spacing-xs: 4px;
-    --spacing-sm: 8px;
-    --spacing-md: 16px;
-    --spacing-lg: 24px;
+    --blue: #0078d4;
+    --gray-dark: #333;
+    --gray-medium: #555;
+    --gray-light: #666;
+    --background: #f0f2f5;
+    --card-bg: #fff;
     --border-radius: 8px;
-    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --shadow: 0 4px 12px rgba(0,0,0,0.1);
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    --spacing-unit: 8px;
   }
 
-  /* Reset and base */
   body {
     font-family: var(--font-family);
-    margin: var(--spacing-lg);
-    background: var(--color-bg);
-    color: var(--color-text-dark);
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    margin: var(--spacing-unit) * 2;
+    background: var(--background);
+    color: var(--gray-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 24px 16px;
   }
 
   h1 {
-    color: var(--color-primary);
+    color: var(--blue);
+    margin-bottom: calc(var(--spacing-unit) * 3);
     font-weight: 600;
     font-size: 2rem;
-    margin-bottom: var(--spacing-lg);
+    text-align: center;
   }
 
-  /* Buttons */
   button {
-    background-color: var(--color-primary);
-    color: var(--color-white);
+    background: var(--blue);
+    color: #fff;
     border: none;
     border-radius: var(--border-radius);
-    padding: var(--spacing-sm) var(--spacing-lg);
+    padding: 12px 24px;
     font-size: 1rem;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 120, 212, 0.4);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    user-select: none;
+    margin: 0 var(--spacing-unit) var(--spacing-unit) 0;
+    transition: background-color 0.25s ease;
+    box-shadow: 0 2px 6px rgba(0,120,212,0.3);
   }
+
   button:hover,
   button:focus {
-    background-color: #005a9e;
-    box-shadow: 0 4px 12px rgba(0, 90, 158, 0.6);
+    background: #005a9e;
     outline: none;
+    box-shadow: 0 0 0 3px rgba(0,120,212,0.5);
   }
+
   button:disabled {
-    background-color: #a0a0a0;
+    background: #a0aebf;
     cursor: not-allowed;
     box-shadow: none;
   }
 
-  /* Container for profile info */
   #profile {
     max-width: 600px;
-    background: var(--color-white);
-    padding: var(--spacing-lg);
+    width: 100%;
+    background: var(--card-bg);
+    padding: calc(var(--spacing-unit) * 3);
     border-radius: var(--border-radius);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    margin-top: var(--spacing-md);
+    box-shadow: var(--shadow);
+    margin-top: calc(var(--spacing-unit) * 3);
+    display: none;
   }
 
   .field {
-    margin-bottom: var(--spacing-md);
     display: flex;
+    margin-bottom: var(--spacing-unit);
     flex-wrap: wrap;
   }
+
   .label {
     font-weight: 600;
-    color: var(--color-text-dark);
+    color: var(--gray-dark);
     min-width: 140px;
-    flex-shrink: 0;
   }
+
   .value {
-    color: var(--color-text-muted);
-    flex-grow: 1;
+    color: var(--gray-medium);
+    flex: 1;
     word-break: break-word;
   }
 
   #status {
-    margin-top: var(--spacing-md);
+    margin-top: var(--spacing-unit);
     font-style: italic;
-    color: var(--color-text-muted);
-    min-height: 1.4em;
-    user-select: none;
+    color: var(--gray-light);
+    min-height: 1.2em;
+    text-align: center;
+  }
+
+  /* Loading spinner */
+  #spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--blue);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+    vertical-align: middle;
+    margin-left: 8px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
   /* Responsive adjustments */
-  @media (max-width: 640px) {
-    body {
-      margin: var(--spacing-md);
-    }
+  @media (max-width: 480px) {
     #profile {
-      padding: var(--spacing-md);
-      max-width: 100%;
+      padding: calc(var(--spacing-unit) * 2);
     }
     .label {
       min-width: 120px;
+      font-size: 0.9rem;
     }
-  }
-
-  /* Spinner for loading state */
-  .spinner {
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-    border: 3px solid rgba(0,0,0,0.2);
-    border-top-color: var(--color-primary);
-    border-radius: 50%;
-    animation: spin 0.75s linear infinite;
-    vertical-align: middle;
-    margin-left: var(--spacing-sm);
-  }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
+    button {
+      width: 100%;
+      margin: 0 0 var(--spacing-unit) 0;
+    }
   }
 </style>
 </head>
@@ -133,16 +141,18 @@
 
 <h1>My Microsoft 365 Profile</h1>
 
-<button id="loginBtn" aria-label="Login to Microsoft 365">Login</button>
-<button id="logoutBtn" style="display:none;" aria-label="Logout from Microsoft 365">Logout</button>
+<div>
+  <button id="loginBtn" aria-label="Login to Microsoft account">Login</button>
+  <button id="logoutBtn" style="display:none;" aria-label="Logout from Microsoft account">Logout</button>
+</div>
 
 <div id="status" role="status" aria-live="polite"></div>
-<div id="profile" style="display:none;" aria-live="polite"></div>
+<div id="profile" aria-live="polite"></div>
 
 <script>
   const msalConfig = {
     auth: {
-      clientId: '4a1add08-6985-47df-bf49-ff14a8f25cdd',
+      clientId: '777f7fc2-a83e-43fe-b79e-209fa7b089c9',
       authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
       redirectUri: window.location.href
     },
@@ -166,14 +176,10 @@
   const profileDiv = document.getElementById('profile');
 
   loginBtn.addEventListener('click', () => {
-    loginBtn.disabled = true;
-    statusDiv.innerHTML = 'Redirecting to login <span class="spinner"></span>';
     msalInstance.loginRedirect(loginRequest);
   });
 
   logoutBtn.addEventListener('click', () => {
-    logoutBtn.disabled = true;
-    statusDiv.textContent = 'Logging out...';
     msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.href });
   });
 
@@ -182,8 +188,6 @@
     .catch(err => {
       console.error(err);
       statusDiv.textContent = "Authentication error.";
-      loginBtn.disabled = false;
-      logoutBtn.disabled = false;
     });
 
   function handleResponse(response) {
@@ -191,21 +195,13 @@
     if (account) {
       loginBtn.style.display = "none";
       logoutBtn.style.display = "inline-block";
-      loginBtn.disabled = false;
-      logoutBtn.disabled = false;
       statusDiv.textContent = `Logged in as ${account.username}`;
       fetchProfile(account);
-    } else {
-      loginBtn.style.display = "inline-block";
-      logoutBtn.style.display = "none";
-      statusDiv.textContent = 'Please log in to view your profile.';
-      profileDiv.style.display = "none";
-      loginBtn.disabled = false;
     }
   }
 
   async function fetchProfile(account) {
-    statusDiv.innerHTML = 'Fetching profile info <span class="spinner"></span>';
+    statusDiv.innerHTML = "Fetching profile info <span id='spinner' aria-hidden='true'></span>";
     profileDiv.style.display = "none";
     try {
       const tokenResponse = await msalInstance.acquireTokenSilent({
