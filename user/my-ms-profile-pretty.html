@@ -1,168 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>My Microsoft 365 Profile</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
-<style>
-  :root {
-    --primary: #0078d4;
-    --gray-bg: #f0f2f5;
-    --card-bg: #ffffff;
-    --label-color: #333;
-    --value-color: #555;
-    --radius: 12px;
-    --shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  }
-  * {
-    box-sizing: border-box;
-  }
-  body {
-    font-family: 'Inter', sans-serif;
-    margin: 0;
-    background: var(--gray-bg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem;
-  }
-  h1 {
-    color: var(--primary);
-    font-size: 2.25rem;
-    margin-bottom: 1rem;
-  }
-  button {
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    border-radius: 999px;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    margin: 0.5rem;
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  button:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
-  }
-  #profile {
-    max-width: 600px;
-    background: var(--card-bg);
-    padding: 2rem;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    display: none;
-    animation: fadeIn 0.6s ease-in-out;
-  }
-  .field {
-    margin-bottom: 1rem;
-  }
-  .label {
-    font-weight: 600;
-    color: var(--label-color);
-  }
-  .value {
-    margin-left: 0.5rem;
-    color: var(--value-color);
-  }
-  #status {
-    margin-top: 1rem;
-    font-style: italic;
-    color: #666;
-    min-height: 1.5rem;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Microsoft 365 Profile</title>
+  <!-- Tailwind CSS & Inter Font -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0078D4',
+            accentStart: '#667EEA',
+            accentEnd: '#764BA2'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
 </head>
-<body>
-<h1>My Microsoft 365 Profile</h1>
-<button id="loginBtn">Login</button>
-<button id="logoutBtn" style="display:none;background:#d83b01">Logout</button>
-<div id="status" role="status" aria-live="polite"></div>
-<div id="profile"></div>
-<script>
-  const msalConfig = {
-    auth: {
-      clientId: '4a1add08-6985-47df-bf49-ff14a8f25cdd',
-      authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
-      redirectUri: window.location.href
-    },
-    cache: {
-      cacheLocation: "localStorage",
-      storeAuthStateInCookie: false
-    }
-  };
-  const loginRequest = {
-    scopes: ['openid', 'profile', 'User.Read', 'offline_access']
-  };
-  const graphEndpoint = "https://graph.microsoft.com/v1.0/me?$select=displayName,mail,department,onPremisesDepartment,jobTitle,userPrincipalName";
-  const msalInstance = new msal.PublicClientApplication(msalConfig);
-  const loginBtn = document.getElementById('loginBtn');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const statusDiv = document.getElementById('status');
-  const profileDiv = document.getElementById('profile');
+<body class="bg-gray-100 font-sans text-gray-800">
+  <!-- Full-page Loading Overlay -->
+  <div id="loadingOverlay" class="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <svg class="animate-spin h-12 w-12 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+    </svg>
+  </div>
 
-  loginBtn.addEventListener('click', () => msalInstance.loginRedirect(loginRequest));
-  logoutBtn.addEventListener('click', () => msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.href }));
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 space-y-2 z-50"></div>
 
-  msalInstance.handleRedirectPromise()
-    .then(handleResponse)
-    .catch(err => {
-      console.error(err);
-      statusDiv.textContent = "Authentication error.";
+  <main class="max-w-3xl mx-auto p-4">
+    <h1 class="text-3xl font-bold text-primary mb-6">My Microsoft 365 Profile</h1>
+    <div class="flex space-x-4 mb-6">
+      <button id="loginBtn" class="px-6 py-2 bg-primary text-white rounded-full shadow hover:-translate-y-1 transition focus:outline-none focus:ring-2 focus:ring-primary">Login</button>
+      <button id="logoutBtn" class="px-6 py-2 bg-red-500 text-white rounded-full shadow hover:-translate-y-1 transition focus:outline-none focus:ring-2 focus:ring-red-500 hidden">Logout</button>
+    </div>
+    <div id="status" aria-live="polite" class="mb-4 text-sm italic text-gray-600"></div>
+
+    <!-- Skeleton Placeholder -->
+    <div id="skeletonCard" class="bg-white shadow-lg rounded-2xl p-6 space-y-4 animate-pulse hidden">
+      <div class="flex items-center space-x-4">
+        <div class="h-16 w-16 rounded-full bg-gray-300"></div>
+        <div class="flex-1 space-y-2 py-1">
+          <div class="h-6 bg-gray-300 rounded w-1/3"></div>
+          <div class="h-4 bg-gray-300 rounded w-1/4"></div>
+        </div>
+      </div>
+      <div class="space-y-4 py-1">
+        <div class="h-4 bg-gray-300 rounded"></div>
+        <div class="h-4 bg-gray-300 rounded"></div>
+        <div class="h-4 bg-gray-300 rounded"></div>
+      </div>
+    </div>
+
+    <!-- Profile Card -->
+    <div id="profileCard" class="bg-white backdrop-filter backdrop-blur-lg bg-opacity-60 shadow-lg rounded-2xl p-6 space-y-4 hidden">
+      <!-- Avatar & Name -->
+      <div class="flex items-center space-x-4">
+        <div id="avatar" class="h-16 w-16 rounded-full bg-gradient-to-br from-accentStart to-accentEnd flex items-center justify-center text-xl text-white font-bold"></div>
+        <div>
+          <h2 id="displayName" class="text-2xl font-semibold"></h2>
+        </div>
+      </div>
+      
+      <!-- Accordion Sections -->
+      <div id="fieldsContainer" class="space-y-4">
+        <details open class="bg-white rounded-lg shadow-inner p-4">
+          <summary class="cursor-pointer font-semibold">Contact Info</summary>
+          <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex items-center">
+              <span class="font-medium">Email:</span>
+              <span id="email" class="ml-2"></span>
+              <button data-copy-target="email" class="ml-2 focus:outline-none" aria-label="Copy email">📋</button>
+            </div>
+          </div>
+        </details>
+        <details class="bg-white rounded-lg shadow-inner p-4">
+          <summary class="cursor-pointer font-semibold">Job & Department</summary>
+          <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex items-center">
+              <span class="font-medium">Job Title:</span>
+              <span id="jobTitle" class="ml-2"></span>
+            </div>
+            <div class="flex items-center">
+              <span class="font-medium">Department:</span>
+              <span id="department" class="ml-2"></span>
+            </div>
+          </div>
+        </details>
+        <details class="bg-white rounded-lg shadow-inner p-4">
+          <summary class="cursor-pointer font-semibold">Advanced</summary>
+          <div class="mt-2">
+            <div class="flex items-center">
+              <span class="font-medium">User Principal Name:</span>
+              <span id="upn" class="ml-2"></span>
+              <button data-copy-target="upn" class="ml-2 focus:outline-none" aria-label="Copy UPN">📋</button>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Edit Button -->
+      <button id="editBtn" class="mt-4 px-6 py-2 bg-accentStart text-white rounded-full shadow hover:-translate-y-1 transition focus:outline-none focus:ring-2 focus:ring-accentStart" aria-label="Edit profile">✏️ Edit</button>
+    </div>
+  </main>
+
+  <script>
+    // MSAL & Auth Config
+    const msalConfig = {
+      auth: {
+        clientId: '9aa111bb-cc73-43fd-959b-e7bf20cd2496',
+        authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
+        redirectUri: window.location.href
+      },
+      cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: false }
+    };
+    const loginRequest = { scopes: ['openid', 'profile', 'User.Read', 'offline_access'] };
+    const graphEndpoint = 'https://graph.microsoft.com/v1.0/me?$select=displayName,mail,department,onPremisesDepartment,jobTitle,userPrincipalName';
+    const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+    // UI Elements
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const statusDiv = document.getElementById('status');
+    const profileCard = document.getElementById('profileCard');
+    const skeletonCard = document.getElementById('skeletonCard');
+    const avatarEl = document.getElementById('avatar');
+    const displayNameEl = document.getElementById('displayName');
+    const emailEl = document.getElementById('email');
+    const jobTitleEl = document.getElementById('jobTitle');
+    const departmentEl = document.getElementById('department');
+    const upnEl = document.getElementById('upn');
+
+    // Event Listeners
+    loginBtn.addEventListener('click', () => {
+      showLoading();
+      msalInstance.loginRedirect(loginRequest);
+    });
+    logoutBtn.addEventListener('click', () => {
+      msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.href });
     });
 
-  function handleResponse(response) {
-    let account = response?.account || msalInstance.getAllAccounts()[0];
-    if (account) {
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-block";
-      statusDiv.textContent = `Logged in as ${account.username}`;
-      fetchProfile(account);
-    }
-  }
+    window.addEventListener('DOMContentLoaded', () => {
+      showLoading();
+      msalInstance.handleRedirectPromise()
+        .then(handleResponse)
+        .catch(err => {
+          console.error(err);
+          hideLoading();
+          toast('Authentication error', 'error');
+        });
+    });
 
-  async function fetchProfile(account) {
-    statusDiv.textContent = "Fetching profile info...";
-    profileDiv.style.display = "none";
-    try {
-      const tokenResponse = await msalInstance.acquireTokenSilent({ account, scopes: loginRequest.scopes });
-      const accessToken = tokenResponse.accessToken;
-      const response = await fetch(graphEndpoint, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-      if (!response.ok) throw new Error(`Graph API error: ${response.status}`);
-      const profile = await response.json();
-      renderProfile(profile);
-      statusDiv.textContent = "Profile loaded";
-    } catch (error) {
-      console.error(error);
-      statusDiv.textContent = "Error fetching profile, retrying login...";
-      if (error instanceof msal.InteractionRequiredAuthError || error.errorCode === 'interaction_required') {
-        msalInstance.acquireTokenRedirect(loginRequest);
+    function handleResponse(response) {
+      const account = response?.account || msalInstance.getAllAccounts()[0];
+      if (account) {
+        loginBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+        statusDiv.textContent = `Logged in as ${account.username}`;
+        fetchProfile(account);
       } else {
-        statusDiv.textContent = "Failed to fetch profile.";
+        hideLoading();
       }
     }
-  }
 
-  function renderProfile(profile) {
-    profileDiv.style.display = "block";
-    const dept = profile.department || profile.onPremisesDepartment || '(not set)';
-    profileDiv.innerHTML = `
-      <div class="field"><span class="label">Display Name:</span><span class="value">${profile.displayName || ''}</span></div>
-      <div class="field"><span class="label">Email:</span><span class="value">${profile.mail || profile.userPrincipalName || ''}</span></div>
-      <div class="field"><span class="label">Job Title:</span><span class="value">${profile.jobTitle || ''}</span></div>
-      <div class="field"><span class="label">Department:</span><span class="value">${dept}</span></div>
-      <div class="field"><span class="label">User Principal Name:</span><span class="value">${profile.userPrincipalName || ''}</span></div>
-    `;
-  }
-</script>
+    async function fetchProfile(account) {
+      statusDiv.textContent = 'Fetching profile info...';
+      profileCard.classList.add('hidden');
+      skeletonCard.classList.remove('hidden');
+      try {
+        const tokenResponse = await msalInstance.acquireTokenSilent({ account, scopes: loginRequest.scopes });
+        const response = await fetch(graphEndpoint, { headers: { Authorization: `Bearer ${tokenResponse.accessToken}` } });
+        if (!response.ok) throw new Error(`Graph API error: ${response.status}`);
+        const profile = await response.json();
+        renderProfile(profile);
+        skeletonCard.classList.add('hidden');
+        profileCard.classList.remove('hidden');
+        statusDiv.textContent = 'Profile loaded';
+      } catch (error) {
+        console.error(error);
+        statusDiv.textContent = 'Error fetching profile';
+        toast('Failed to fetch profile, retrying...', 'error');
+        msalInstance.acquireTokenRedirect(loginRequest);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    function renderProfile(p) {
+      // Name & Avatar
+      const name = p.displayName || '';
+      displayNameEl.textContent = name;
+      const initials = name.split(' ').map(part => part[0]).join('').toUpperCase().slice(0,2);
+      avatarEl.textContent = initials;
+
+      // Fields
+      emailEl.textContent = p.mail || p.userPrincipalName || '';
+      jobTitleEl.textContent = p.jobTitle || '';
+      departmentEl.textContent = p.department || p.onPremisesDepartment || '(not set)';
+      upnEl.textContent = p.userPrincipalName || '';
+    }
+
+    // Loading & Skeleton Helpers
+    function showLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
+    function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
+
+    // Toast Notifications
+    function toast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toastEl = document.createElement('div');
+      toastEl.className = 'px-4 py-2 bg-white shadow rounded-lg';
+      toastEl.textContent = message;
+      container.appendChild(toastEl);
+      setTimeout(() => container.removeChild(toastEl), 3000);
+    }
+
+    // Copy-to-Clipboard
+    document.querySelectorAll('button[data-copy-target]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = document.getElementById(btn.dataset.copyTarget).textContent;
+        navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard!', 'success'));
+      });
+    });
+  </script>
 </body>
 </html>
