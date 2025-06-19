@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Microsoft 365 Profile</title>
+<script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+<style>
+  /* Reset & base */
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #e3f2fd;
+    color: #202124;
+    margin: 0;
+    padding: 2rem 1rem;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .container {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    max-width: 420px;
+    width: 100%;
+    padding: 2.5rem 2rem 3rem;
+    box-sizing: border-box;
+  }
+
+  h1 {
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    font-size: 1.75rem;
+    color: #0d47a1;
+    text-align: center;
+  }
+
+  #status {
+    font-style: italic;
+    color: #666;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    min-height: 1.5em;
+  }
+
+  button {
+    display: block;
+    width: 100%;
+    background-color: #0d47a1;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+    margin-bottom: 1rem;
+    user-select: none;
+  }
+
+  button:hover {
+    background-color: #083972;
+  }
+
+  button:focus {
+    outline: 3px solid #64b5f6;
+    outline-offset: 2px;
+  }
+
+  #logoutBtn {
+    background-color: #b71c1c;
+  }
+
+  #logoutBtn:hover {
+    background-color: #7f1212;
+  }
+
+  #profile {
+    display: none;
+    border-top: 1px solid #eee;
+    padding-top: 1.5rem;
+  }
+
+  .profile-field {
+    margin-bottom: 1.1rem;
+  }
+
+  .profile-label {
+    font-weight: 600;
+    color: #555;
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+  }
+
+  .profile-value {
+    font-size: 1.1rem;
+    color: #212121;
+    word-wrap: break-word;
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    body {
+      padding: 1rem;
+    }
+
+    .container {
+      padding: 1.5rem 1rem 2rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>My Microsoft 365 Profile</h1>
+
+  <button id="loginBtn">Login</button>
+  <button id="logoutBtn" style="display:none;">Logout</button>
+
+  <div id="status"></div>
+
+  <div id="profile" aria-live="polite" aria-atomic="true" role="region"></div>
+</div>
+
+<script>
+  const msalConfig = {
+    auth: {
+      clientId: '4a1add08-6985-47df-bf49-ff14a8f25cdd',
+      authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
+      redirectUri: window.location.href
+    },
+    cache: {
+      cacheLocation: "localStorage",
+      storeAuthStateInCookie: false
+    }
+  };
+
+  const loginRequest = {
+    scopes: ['openid', 'profile', 'User.Read', 'offline_access']
+  };
+
+  const graphEndpoint = "https://graph.microsoft.com/v1.0/me?$select=displayName,mail,department,onPremisesDepartment,jobTitle,userPrincipalName";
+
+  const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const statusDiv = document.getElementById('status');
+  const profileDiv = document.getElementById('profile');
+
+  loginBtn.addEventListener('click', () => {
+    msalInstance.loginRedirect(loginRequest);
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.href });
+  });
+
+  msalInstance.handleRedirectPromise()
+    .then(handleResponse)
+    .catch(err => {
+      console.error(err);
+      statusDiv.textContent = "Authentication error.";
+    });
+
+  function handleResponse(response) {
+    let account = response?.account || msalInstance.getAllAccounts()[0];
+    if (account) {
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "block";
+      statusDiv.textContent = `Logged in as ${account.username}`;
+      fetchProfile(account);
+    }
+  }
+
+  async function fetchProfile(account) {
+    statusDiv.textContent = "Fetching profile info...";
+    profileDiv.style.display = "none";
+    try {
+      const tokenResponse = await msalInstance.acquireTokenSilent({
+        account: account,
+        scopes: loginRequest.scopes
+      });
+
+      const accessToken = tokenResponse.accessToken;
+
+      const response = await fetch(graphEndpoint, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Graph API error: ${response.status} ${response.statusText}`);
+      }
+
+      const profile = await response.json();
+      renderProfile(profile);
+      statusDiv.textContent = "Profile loaded";
+    } catch (error) {
+      console.error(error);
+      statusDiv.textContent = "Error fetching profile, retrying login...";
+      if (error instanceof msal.InteractionRequiredAuthError || error.errorCode === 'interaction_required') {
+        msalInstance.acquireTokenRedirect(loginRequest);
+      } else {
+        statusDiv.textContent = "Failed to fetch profile.";
+      }
+    }
+  }
+
+  function renderProfile(profile) {
+    profileDiv.style.display = "block";
+    const dept = profile.department || profile.onPremisesDepartment || '(not set)';
+    profileDiv.innerHTML = `
+      <div class="profile-field">
+        <span class="profile-label">Display Name:</span>
+        <span class="profile-value">${profile.displayName || ''}</span>
+      </div>
+      <div class="profile-field">
+        <span class="profile-label">Email:</span>
+        <span class="profile-value">${profile.mail || profile.userPrincipalName || ''}</span>
+      </div>
+      <div class="profile-field">
+        <span class="profile-label">Job Title:</span>
+        <span class="profile-value">${profile.jobTitle || ''}</span>
+      </div>
+      <div class="profile-field">
+        <span class="profile-label">Department:</span>
+        <span class="profile-value">${dept}</span>
+      </div>
+      <div class="profile-field">
+        <span class="profile-label">User Principal Name:</span>
+        <span class="profile-value">${profile.userPrincipalName || ''}</span>
+      </div>
+    `;
+  }
+</script>
+
+</body>
+</html>
