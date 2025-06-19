@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Last 50 Emails Viewer</title>
+<script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f0f2f5; }
+  h1 { color: #0078d4; }
+  button { padding: 10px 20px; margin: 10px 5px 20px; font-size: 16px; cursor: pointer; }
+  #emailList { max-width: 900px; margin-top: 20px; }
+  .email-item { background: #fff; margin-bottom: 12px; padding: 12px 16px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
+  .subject { font-weight: bold; color: #0078d4; }
+  .from { color: #444; margin-top: 4px; }
+  .received { font-size: 0.9em; color: #666; margin-top: 2px; }
+  #status { margin-top: 10px; font-style: italic; color: #666; }
+</style>
+</head>
+<body>
+
+<h1>Last 50 Emails Viewer</h1>
+
+<button id="loginBtn">Login</button>
+<button id="logoutBtn" style="display:none;">Logout</button>
+
+<div id="status"></div>
+<div id="emailList"></div>
+
+<script>
+  const msalConfig = {
+    auth: {
+      clientId: 'YOUR_CLIENT_ID',
+      authority: 'https://login.microsoftonline.com/YOUR_TENANT_ID',
+      redirectUri: window.location.origin
+    },
+    cache: {
+      cacheLocation: "localStorage", // better for refresh persistence
+      storeAuthStateInCookie: false
+    }
+  };
+
+  const loginRequest = {
+    scopes: ['openid', 'profile', 'Mail.Read', 'offline_access']
+  };
+
+  const graphEndpoint = "https://graph.microsoft.com/v1.0/me/mailFolders/Inbox/messages?$top=50&$select=subject,receivedDateTime,from&$orderby=receivedDateTime desc";
+
+  const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const statusDiv = document.getElementById('status');
+  const emailListDiv = document.getElementById('emailList');
+
+  // Login
+  loginBtn.addEventListener('click', () => {
+    msalInstance.loginRedirect(loginRequest);
+  });
+
+  // Logout
+  logoutBtn.addEventListener('click', () => {
+    msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.origin });
+  });
+
+  // Handle redirect response (if any)
+  msalInstance.handleRedirectPromise()
+    .then(handleResponse)
+    .catch(err => {
+      console.error(err);
+      statusDiv.textContent = "Authentication error.";
+    });
+
+  // Check if already logged in
+  function handleResponse(response) {
+    let account = response?.account || msalInstance.getAllAccounts()[0];
+    if (account) {
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
+      statusDiv.textContent = `Logged in as ${account.username}`;
+      fetchEmails(account);
+    }
+  }
+
+  // Fetch last 50 emails
+  async function fetchEmails(account) {
+    statusDiv.textContent = "Fetching last 50 emails...";
+    try {
+      const tokenResponse = await msalInstance.acquireTokenSilent({
+        account: account,
+        scopes: loginRequest.scopes
+      });
+
+      const accessToken = tokenResponse.accessToken;
+
+      const response = await fetch(graphEndpoint, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Graph API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      renderEmails(data.value);
+
+      statusDiv.textContent = `Showing last ${data.value.length} emails`;
+    } catch (error) {
+      console.error(error);
+      statusDiv.textContent = "Error fetching emails, retrying login...";
+      // fallback to interactive token request if silent fails
+      if (error instanceof msal.InteractionRequiredAuthError || error.errorCode === 'interaction_required') {
+        msalInstance.acquireTokenRedirect(loginRequest);
+      } else {
+        statusDiv.textContent = "Failed to fetch emails.";
+      }
+    }
+  }
+
+  // Render email list
+  function renderEmails(emails) {
+    emailListDiv.innerHTML = '';
+    if (!emails.length) {
+      emailListDiv.textContent = "No emails found.";
+      return;
+    }
+    emails.forEach(email => {
+      const div = document.createElement('div');
+      div.className = "email-item";
+      const subject = email.subject || "(No subject)";
+      const from = email.from?.emailAddress?.name || "(Unknown sender)";
+      const received = new Date(email.receivedDateTime).toLocaleString();
+
+      div.innerHTML = `
+        <div class="subject">${subject}</div>
+        <div class="from">From: ${from}</div>
+        <div class="received">Received: ${received}</div>
+      `;
+      emailListDiv.appendChild(div);
+    });
+  }
+</script>
+
+</body>
+</html>
