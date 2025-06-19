@@ -1,251 +1,222 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>My Microsoft 365 Profile</title>
-<script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Microsoft 365 Profile</title>
+  <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+  <style>
+    /* Design Tokens */
+    :root {
+      --color-primary: #0063b1;
+      --color-background: #f0f2f5;
+      --color-surface: #ffffff;
+      --color-text-primary: #202124;
+      --color-text-secondary: #5f6368;
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --radius-md: 12px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+      --transition: 0.3s ease;
+    }
+    [data-theme="dark"] {
+      --color-background: #1a1a1a;
+      --color-surface: #2c2c2c;
+      --color-text-primary: #e8eaed;
+      --color-text-secondary: #a1a1a1;
+    }
 
-<style>
-  :root {
-    --primary-color: #0078d4;
-    --background-color: #f0f2f5;
-    --card-bg: rgba(255, 255, 255, 0.65);
-    --card-shadow: rgba(0, 0, 0, 0.12);
-    --text-primary: #212121;
-    --text-secondary: #555;
-    --text-muted: #666;
-    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    --border-radius: 12px;
-    --spacing-unit: 1rem;
-    --transition-speed: 0.3s;
-  }
+    body {
+      margin: 0;
+      padding: var(--space-lg);
+      font-family: "Segoe UI", sans-serif;
+      background: var(--color-background);
+      color: var(--color-text-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      transition: background var(--transition), color var(--transition);
+    }
 
-  /* Reset & base */
-  body {
-    margin: 0;
-    min-height: 100vh;
-    background: var(--background-color);
-    font-family: var(--font-family);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem 1rem;
-    color: var(--text-primary);
-  }
+    header {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-lg);
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      color: var(--color-primary);
+    }
+    .btn {
+      background: var(--color-primary);
+      color: #fff;
+      border: none;
+      padding: var(--space-sm) var(--space-md);
+      font-size: 1rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    }
+    .toggle-theme {
+      background: none;
+      font-size: 1.25rem;
+    }
 
-  h1 {
-    color: var(--primary-color);
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    font-size: 2.25rem;
-    text-align: center;
-  }
+    #status {
+      margin-top: var(--space-sm);
+      font-size: 0.9rem;
+      color: var(--color-text-secondary);
+      min-height: 1.2em;
+      transition: color var(--transition);
+    }
 
-  /* Button container with spacing */
-  .button-group {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
+    #profile {
+      width: 100%;
+      max-width: 600px;
+      background: var(--color-surface);
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: var(--space-md);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity var(--transition), transform var(--transition);
+    }
+    #profile.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .field {
+      display: contents;
+    }
+    .label {
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+    .value {
+      color: var(--color-text-primary);
+    }
 
-  button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: var(--border-radius);
-    padding: 0.75rem 1.75rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 120, 212, 0.3);
-    transition: background-color var(--transition-speed), box-shadow var(--transition-speed), transform var(--transition-speed);
-    user-select: none;
-  }
-
-  button:hover,
-  button:focus {
-    background-color: #005a9e;
-    box-shadow: 0 6px 12px rgba(0, 90, 158, 0.45);
-    outline: none;
-    transform: translateY(-2px);
-  }
-
-  button:disabled {
-    background-color: #a0a0a0;
-    cursor: not-allowed;
-    box-shadow: none;
-    transform: none;
-  }
-
-  /* Status text with fade animation */
-  #status {
-    font-style: italic;
-    color: var(--text-muted);
-    min-height: 1.25rem;
-    margin-bottom: 1rem;
-    opacity: 0;
-    animation: fadeIn 0.5s forwards;
-  }
-
-  /* Profile container with glassmorphism */
-  #profile {
-    max-width: 480px;
-    width: 100%;
-    background: var(--card-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: var(--border-radius);
-    box-shadow: 0 8px 32px var(--card-shadow);
-    padding: 2rem;
-    color: var(--text-primary);
-    display: none;
-  }
-
-  /* Profile field styling */
-  .field {
-    margin-bottom: 1.25rem;
-    display: flex;
-    flex-wrap: wrap;
-  }
-
-  .label {
-    font-weight: 700;
-    color: var(--primary-color);
-    min-width: 140px;
-  }
-
-  .value {
-    color: var(--text-secondary);
-    flex-grow: 1;
-    word-break: break-word;
-  }
-
-  /* Fade in animation */
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-</style>
+    /* Spinner */
+    .spinner {
+      border: 4px solid rgba(0,0,0,0.1);
+      border-left-color: var(--color-primary);
+      border-radius: 50%;
+      width: 2rem;
+      height: 2rem;
+      animation: spin 1s linear infinite;
+      margin: var(--space-md) auto;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
+  <header>
+    <h1>My Microsoft 365 Profile</h1>
+    <div>
+      <button id="loginBtn" class="btn">Login</button>
+      <button id="logoutBtn" class="btn" style="display:none;">Logout</button>
+      <button id="themeToggle" class="toggle-theme" aria-label="Toggle dark/light mode">🌙</button>
+    </div>
+  </header>
 
-<h1>My Microsoft 365 Profile</h1>
+  <div id="status"></div>
+  <div id="loader" class="spinner" style="display:none;"></div>
+  <div id="profile"></div>
 
-<div class="button-group">
-  <button id="loginBtn" aria-label="Login to Microsoft account">Login</button>
-  <button id="logoutBtn" aria-label="Logout from Microsoft account" style="display:none;">Logout</button>
-</div>
-
-<div id="status" aria-live="polite" aria-atomic="true"></div>
-<section id="profile" aria-label="User profile information"></section>
-
-<script>
-  // ... your existing JS code unchanged except for adding fade-in effect on status updates:
-  const msalConfig = {
-    auth: {
-      clientId: '4a1add08-6985-47df-bf49-ff14a8f25cdd',
-      authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
-      redirectUri: window.location.href
-    },
-    cache: {
-      cacheLocation: "localStorage",
-      storeAuthStateInCookie: false
-    }
-  };
-
-  const loginRequest = {
-    scopes: ['openid', 'profile', 'User.Read', 'offline_access']
-  };
-
-  const graphEndpoint = "https://graph.microsoft.com/v1.0/me?$select=displayName,mail,department,onPremisesDepartment,jobTitle,userPrincipalName";
-
-  const msalInstance = new msal.PublicClientApplication(msalConfig);
-
-  const loginBtn = document.getElementById('loginBtn');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const statusDiv = document.getElementById('status');
-  const profileDiv = document.getElementById('profile');
-
-  loginBtn.addEventListener('click', () => {
-    msalInstance.loginRedirect(loginRequest);
-  });
-
-  logoutBtn.addEventListener('click', () => {
-    msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.href });
-  });
-
-  msalInstance.handleRedirectPromise()
-    .then(handleResponse)
-    .catch(err => {
-      console.error(err);
-      updateStatus("Authentication error.");
+  <script>
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      const root = document.documentElement;
+      const current = root.getAttribute('data-theme');
+      const next = current === 'light' ? 'dark' : 'light';
+      root.setAttribute('data-theme', next);
+      themeToggle.textContent = next === 'light' ? '🌙' : '☀️';
     });
 
-  function updateStatus(message) {
-    statusDiv.style.opacity = 0;
-    setTimeout(() => {
-      statusDiv.textContent = message;
-      statusDiv.style.opacity = 1;
-    }, 250);
-  }
+    const msalConfig = {
+      auth: {
+        clientId: '4a1add08-6985-47df-bf49-ff14a8f25cdd',
+        authority: 'https://login.microsoftonline.com/20e27700-b670-4553-a27c-d8e2583b3289',
+        redirectUri: window.location.href
+      },
+      cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: false }
+    };
+    const loginRequest = { scopes: ['openid', 'profile', 'User.Read', 'offline_access'] };
+    const graphEndpoint = 'https://graph.microsoft.com/v1.0/me?$select=displayName,mail,department,onPremisesDepartment,jobTitle,userPrincipalName';
+    const msalInstance = new msal.PublicClientApplication(msalConfig);
 
-  function handleResponse(response) {
-    let account = response?.account || msalInstance.getAllAccounts()[0];
-    if (account) {
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-block";
-      updateStatus(`Logged in as ${account.username}`);
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const statusDiv = document.getElementById('status');
+    const loader = document.getElementById('loader');
+    const profileDiv = document.getElementById('profile');
+
+    loginBtn.addEventListener('click', () => msalInstance.loginRedirect(loginRequest));
+    logoutBtn.addEventListener('click', () => msalInstance.logoutRedirect({ postLogoutRedirectUri: window.location.href }));
+
+    msalInstance.handleRedirectPromise()
+      .then(res => { const account = res?.account || msalInstance.getAllAccounts()[0]; if (account) initialize(account); })
+      .catch(e => { console.error(e); statusDiv.textContent = 'Authentication error.'; });
+
+    function initialize(account) {
+      loginBtn.style.display = 'none';
+      logoutBtn.style.display = 'inline-block';
+      statusDiv.textContent = `Logged in as ${account.username}`;
       fetchProfile(account);
     }
-  }
 
-  async function fetchProfile(account) {
-    updateStatus("Fetching profile info...");
-    profileDiv.style.display = "none";
-    try {
-      const tokenResponse = await msalInstance.acquireTokenSilent({
-        account: account,
-        scopes: loginRequest.scopes
-      });
+    async function fetchProfile(account) {
+      try {
+        statusDiv.textContent = 'Fetching profile info...';
+        loader.style.display = 'block';
+        profileDiv.classList.remove('visible');
 
-      const accessToken = tokenResponse.accessToken;
+        const tokenResponse = await msalInstance.acquireTokenSilent({ account, scopes: loginRequest.scopes });
+        const res = await fetch(graphEndpoint, { headers: { Authorization: `Bearer ${tokenResponse.accessToken}` } });
+        if (!res.ok) throw new Error(res.statusText);
+        const profile = await res.json();
 
-      const response = await fetch(graphEndpoint, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Graph API error: ${response.status} ${response.statusText}`);
-      }
-
-      const profile = await response.json();
-      renderProfile(profile);
-      updateStatus("Profile loaded");
-    } catch (error) {
-      console.error(error);
-      updateStatus("Error fetching profile, retrying login...");
-      if (error instanceof msal.InteractionRequiredAuthError || error.errorCode === 'interaction_required') {
-        msalInstance.acquireTokenRedirect(loginRequest);
-      } else {
-        updateStatus("Failed to fetch profile.");
+        renderProfile(profile);
+        statusDiv.textContent = 'Profile loaded';
+      } catch (err) {
+        console.error(err);
+        statusDiv.textContent = 'Error fetching profile, retrying...';
+        if (err instanceof msal.InteractionRequiredAuthError) msalInstance.acquireTokenRedirect(loginRequest);
+        else statusDiv.textContent = 'Failed to fetch profile.';
+      } finally {
+        loader.style.display = 'none';
       }
     }
-  }
 
-  function renderProfile(profile) {
-    profileDiv.style.display = "block";
-    const dept = profile.department || profile.onPremisesDepartment || '(not set)';
-    profileDiv.innerHTML = `
-      <div class="field"><span class="label">Display Name:</span><span class="value">${profile.displayName || ''}</span></div>
-      <div class="field"><span class="label">Email:</span><span class="value">${profile.mail || profile.userPrincipalName || ''}</span></div>
-      <div class="field"><span class="label">Job Title:</span><span class="value">${profile.jobTitle || ''}</span></div>
-      <div class="field"><span class="label">Department:</span><span class="value">${dept}</span></div>
-      <div class="field"><span class="label">User Principal Name:</span><span class="value">${profile.userPrincipalName || ''}</span></div>
-    `;
-  }
-</script>
-
+    function renderProfile(profile) {
+      const dept = profile.department || profile.onPremisesDepartment || '(not set)';
+      profileDiv.innerHTML = `
+        <div class="label">Display Name:</div><div class="value">${profile.displayName}</div>
+        <div class="label">Email:</div><div class="value">${profile.mail || profile.userPrincipalName}</div>
+        <div class="label">Job Title:</div><div class="value">${profile.jobTitle}</div>
+        <div class="label">Department:</div><div class="value">${dept}</div>
+        <div class="label">UPN:</div><div class="value">${profile.userPrincipalName}</div>
+      `;
+      profileDiv.classList.add('visible');
+    }
+  </script>
 </body>
 </html>
